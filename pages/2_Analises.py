@@ -5,6 +5,38 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+
+# Função para calcular as sequências de voltas limpas
+def calcular_sequencias_voltas_limpas(df):
+    sequencias = []
+    for driver, group in df.groupby('Driver'):
+        # Identificar mudanças na coluna 'Clean' para detectar sequências
+        group['Shift'] = group['Clean'].shift(1)
+        group['New_Sequence'] = (group['Clean'] != group['Shift'])
+        group['Sequence_ID'] = group['New_Sequence'].cumsum()
+
+        # Filtrar apenas as sequências de voltas limpas (Clean == 1)
+        clean_sequences = group[group['Clean'] == 1]
+
+        # Contar o tamanho de cada sequência
+        sequence_lengths = clean_sequences.groupby('Sequence_ID').size()
+
+        # Armazenar os resultados
+        for length in sequence_lengths:
+            sequencias.append({'Driver': driver, 'Sequence_Length': length})
+    
+    return pd.DataFrame(sequencias)
+
+def identificar_sequencias(df):
+    sequencias = []
+    for driver, group in df.groupby('Driver'):
+        group = group.sort_values(by='Lap')
+        group['Shift'] = group['Clean'].shift(1)
+        group['New_Sequence'] = (group['Clean'] != group['Shift'])
+        group['Sequence_ID'] = group['New_Sequence'].cumsum()
+        sequencias.append(group)
+    return pd.concat(sequencias)
+
 def main():
     st.set_page_config(
         page_title="Gear 1 Post Race",
@@ -163,6 +195,10 @@ def main():
                 fig.update_xaxes(tickangle=45)
                 fig.update_layout(bargap=0.02)
                 st.plotly_chart(fig, use_container_width=True)
+
+                # #teste setores
+                # sector_columns = [col for col in final_df.columns if 'Sector' in col]
+
         with tab2:
 
             try:
@@ -227,6 +263,101 @@ def main():
                 #     st.plotly_chart(fig)
             except UnboundLocalError:
                 st.write("Sem dados a exibir.")
+
+            # Calcular as sequências de voltas limpas
+            sequencias_df = calcular_sequencias_voltas_limpas(final_df)
+
+            # Determinar a maior sequência de voltas limpas por piloto
+            maiores_sequencias = sequencias_df.groupby('Driver')['Sequence_Length'].max().reset_index()
+
+            # Criar o gráfico de barras para as maiores sequências
+            fig_bar = go.Figure(data=[
+                go.Bar(
+                    x=maiores_sequencias['Driver'],
+                    y=maiores_sequencias['Sequence_Length'],
+                    marker_color='rgb(15, 114, 35)',  # Verde
+                )
+            ])
+
+            fig_bar.update_layout(
+                title='Maior Sequência de Voltas Limpas por Piloto',
+                xaxis_title='Piloto',
+                yaxis_title='Número de Voltas Limpas Consecutivas',
+                template='plotly_white'
+            )
+
+            # Exibir o gráfico de barras no Streamlit
+            st.plotly_chart(fig_bar)
+
+            ## feature para avaliar taxa de acidentes com o tempo de direção
+            # Ordenar o DataFrame por piloto e número da volta
+            # final_df = final_df.sort_values(by=['Driver', 'LapNumber'])
+
+            # # Identificar mudanças na coluna 'Clean' para detectar novas sequências
+            # final_df['New_Sequence'] = (final_df['Clean'] != final_df.groupby('Driver')['Clean'].shift(1)).astype(int)
+
+            # # Atribuir um identificador único para cada sequência
+            # final_df['Sequence_ID'] = final_df.groupby('Driver')['New_Sequence'].cumsum()
+
+            # # Calcular a diferença de tempo entre voltas consecutivas dentro de cada sequência
+            # final_df['LapTime'] = pd.to_timedelta(final_df['LapTime'])  # Converter 'LapTime' para timedelta, se ainda não estiver
+            # final_df['Time_Diff'] = final_df.groupby(['Driver', 'Sequence_ID'])['LapTime'].diff().fillna(pd.Timedelta(seconds=0))
+
+            # # Calcular a duração total de cada sequência
+            # sequence_durations = final_df.groupby(['Driver', 'Sequence_ID']).agg(
+            #     Total_Time=('Time_Diff', 'sum'),
+            #     Total_Laps=('LapNumber', 'count'),
+            #     Incidents=('Clean', lambda x: (x == 0).sum())
+            # ).reset_index()
+
+            # # Definir intervalos de tempo (em minutos)
+            # bins = [0, 5, 10, 15, 20, 25, 30, np.inf]
+            # labels = ['0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30+']
+
+            # # Categorizar as sequências em intervalos de tempo
+            # sequence_durations['Time_Bin'] = pd.cut(sequence_durations['Total_Time'].dt.total_seconds() / 60, bins=bins, labels=labels, right=False)
+
+            # # Calcular a taxa de incidentes para cada intervalo de tempo
+            # incident_rates = sequence_durations.groupby('Time_Bin').agg(
+            #     Total_Incidents=('Incidents', 'sum'),
+            #     Total_Time=('Total_Time', 'sum')
+            # ).reset_index()
+
+            # incident_rates['Incident_Rate'] = incident_rates['Total_Incidents'] / (incident_rates['Total_Time'].dt.total_seconds() / 3600)  # Incidentes por hora
+
+            # # Remover intervalos sem dados
+            # incident_rates = incident_rates.dropna()
+
+            # # Criar o gráfico
+            # fig = px.bar(incident_rates, x='Time_Bin', y='Incident_Rate',
+            #             title='Taxa de Incidentes por Tempo de Pilotagem Contínua',
+            #             labels={'Time_Bin': 'Tempo de Pilotagem Contínua (minutos)', 'Incident_Rate': 'Taxa de Incidentes (por hora)'},
+            #             text_auto=True)
+
+            # # Exibir o gráfico no Streamlit
+            # st.plotly_chart(fig)
+
+            # Criar histogramas para cada piloto
+            for driver in sequencias_df['Driver'].unique():
+                driver_data = sequencias_df[sequencias_df['Driver'] == driver]
+
+                fig_hist = go.Figure(data=[
+                    go.Histogram(
+                        x=driver_data['Sequence_Length'],
+                        marker_color='rgb(15, 114, 35)',  # Verde
+                        opacity=0.75
+                    )
+                ])
+
+                fig_hist.update_layout(
+                    title=f'Distribuição das Sequências de Voltas Limpas - {driver}',
+                    xaxis_title='Tamanho da Sequência de Voltas Limpas',
+                    yaxis_title='Frequência',
+                    template='plotly_white'
+                )
+
+                # Exibir o histograma no Streamlit
+                st.plotly_chart(fig_hist)
 
 if __name__ == "__main__":
     main()
