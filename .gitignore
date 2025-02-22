@@ -1,0 +1,14 @@
+seg.py
+.venv/
+__pycache__/
+arquivos_ok/
+build/
+dist/
+json_tests/
+pilotos_por_pais.json
+test_colab/
+test_df/
+test_scraper.py
+scraper_driver_data_progress.json
+resposta_iracing
+driver_data_progress_parcial.json
