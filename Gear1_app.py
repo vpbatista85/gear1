@@ -3,6 +3,12 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import sys
+
+# Se estiver rodando no Windows, importe o pywin32
+if sys.platform == "win32":
+    import win32com.client
+
 
 st.set_page_config(
     page_title="Gear 1 HQ",

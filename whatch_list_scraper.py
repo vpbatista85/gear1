@@ -77,8 +77,8 @@ chrome_options.add_argument("--window-size=1920,1080")
 # driver = webdriver.Chrome()
 driver = webdriver.Chrome(options=chrome_options)
 
-# Acessar a página inicial do iRacing
-driver.get("https://members.iracing.com/membersite/member/Home.do")
+# # Acessar a página inicial do iRacing
+# driver.get("https://members.iracing.com/membersite/member/Home.do")
 
 # Adicionar os cookies autenticados ao WebDriver
 for key, value in cookies.items():

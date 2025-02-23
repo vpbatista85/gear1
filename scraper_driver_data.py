@@ -88,7 +88,7 @@ async def main():
             progresso = json.load(file)
 
     # Filtra pilotos já processados
-    pilotos_pendentes = [p for p in pilotos if p["driverName"] not in {x["driverName"] for x in progresso}]
+    pilotos_pendentes = [p for p in pilotos if p["driverName"] not in {x["nome"] for x in progresso}]
 
     if not pilotos_pendentes:
         print("✅ Todos os pilotos já foram processados!")
