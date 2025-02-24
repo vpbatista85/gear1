@@ -5,27 +5,59 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import sys
 from flask import Flask, request, jsonify
+import json
+
 
 # Se estiver rodando no Windows, importe o pywin32
 if sys.platform == "win32":
     import win32com.client
 
-app = Flask(__name__)
+# Chave para armazenar o IP na sessão do Streamlit
+if "ip_do_client" not in st.session_state:
+    st.session_state["ip_do_client"] = None
 
-ip_do_client = None  # Armazena o IP do client local
-
-@app.route('/registrar_ip', methods=['POST'])
+# Simula um endpoint na própria página principal
 def registrar_ip():
-    global ip_do_client
-    dados = request.get_json()
-    ip_do_client = dados.get("ip")
-    print(f"Novo IP registrado: {ip_do_client}")
-    return jsonify({"mensagem": "IP registrado com sucesso!"}), 200
+    """Recebe o IP via requisição JSON e armazena no estado do Streamlit."""
+    try:
+        req = st.experimental_get_query_params()  # Tenta obter dados da URL
+        ip = req.get("ip", [None])[0]
+        if ip:
+            st.session_state["ip_do_client"] = ip
+            return json.dumps({"mensagem": "IP registrado com sucesso!"})
+    except Exception as e:
+        return json.dumps({"erro": str(e)})
 
-@app.route('/obter_ip', methods=['GET'])
-def obter_ip():
-    """Endpoint que retorna o IP registrado"""
-    return jsonify({"ip": ip_do_client or "Nenhum IP registrado ainda"}), 200
+# Tenta registrar IP (caso tenha sido enviado)
+registrar_ip()
+
+# Exibe o IP registrado na interface
+st.title("📡 Controle do iRacing - Gear1App")
+st.write("🔄 Descobrindo o IP do client local...")
+
+if st.session_state["ip_do_client"]:
+    st.success(f"✅ IP do client detectado: {st.session_state['ip_do_client']}")
+else:
+    st.warning("⚠️ Nenhum IP detectado. Verifique se o client local está rodando.")
+
+st.write("📊 Dashboard de Dados em Tempo Real...")
+
+# app = Flask(__name__)
+
+# ip_do_client = None  # Armazena o IP do client local
+
+# @app.route('/registrar_ip', methods=['POST'])
+# def registrar_ip():
+#     global ip_do_client
+#     dados = request.get_json()
+#     ip_do_client = dados.get("ip")
+#     print(f"Novo IP registrado: {ip_do_client}")
+#     return jsonify({"mensagem": "IP registrado com sucesso!"}), 200
+
+# @app.route('/obter_ip', methods=['GET'])
+# def obter_ip():
+#     """Endpoint que retorna o IP registrado"""
+#     return jsonify({"ip": ip_do_client or "Nenhum IP registrado ainda"}), 200
 
 
 st.set_page_config(

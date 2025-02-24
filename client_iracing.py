@@ -8,7 +8,7 @@ import winreg  # Para acessar o Registro do Windows
 app = Flask(__name__)
 
 
-STREAMLIT_URL = "https://gear1app.streamlit.app/registrar_ip"  # Endpoint para registrar IP
+STREAMLIT_URL = "https://gear1app.streamlit.app/"  # Endpoint para registrar IP
 
 def obter_ip_local():
     """Obtém o IP local da máquina automaticamente."""
