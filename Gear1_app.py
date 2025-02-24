@@ -20,7 +20,7 @@ if "ip_do_client" not in st.session_state:
 def registrar_ip():
     """Recebe o IP via requisição JSON e armazena no estado do Streamlit."""
     try:
-        req = st.experimental_get_query_params()  # Tenta obter dados da URL
+        req = st.query_params()  # Tenta obter dados da URL
         ip = req.get("ip", [None])[0]
         if ip:
             st.session_state["ip_do_client"] = ip
