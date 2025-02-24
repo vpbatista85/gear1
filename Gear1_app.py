@@ -60,8 +60,8 @@ st.title(":green[Bem-vindo ao Gear One Head Quarter]")
 st.write(":green[Utilize o menu à esquerda para navegar entre as páginas.]")
 
 # 📌 Rota para registrar o IP (client chama essa URL)
-if st.query_params().get("registrar_ip"):
-    ip = st.query_params().get("ip", [None])[0]
+if st.query_params.get("registrar_ip"):
+    ip = st.query_params.get("ip", [None])[0]
     if ip:
         salvar_ip(ip)
         st.write("✅ IP registrado com sucesso!")
