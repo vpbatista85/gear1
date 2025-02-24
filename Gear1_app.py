@@ -4,10 +4,28 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import sys
+from flask import Flask, request, jsonify
 
 # Se estiver rodando no Windows, importe o pywin32
 if sys.platform == "win32":
     import win32com.client
+
+app = Flask(__name__)
+
+ip_do_client = None  # Armazena o IP do client local
+
+@app.route('/registrar_ip', methods=['POST'])
+def registrar_ip():
+    global ip_do_client
+    dados = request.get_json()
+    ip_do_client = dados.get("ip")
+    print(f"Novo IP registrado: {ip_do_client}")
+    return jsonify({"mensagem": "IP registrado com sucesso!"}), 200
+
+@app.route('/obter_ip', methods=['GET'])
+def obter_ip():
+    """Endpoint que retorna o IP registrado"""
+    return jsonify({"ip": ip_do_client or "Nenhum IP registrado ainda"}), 200
 
 
 st.set_page_config(

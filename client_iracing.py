@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import requests
 import os
 import win32com.client
 import socket
@@ -6,11 +7,26 @@ import winreg  # Para acessar o Registro do Windows
 
 app = Flask(__name__)
 
+
+STREAMLIT_URL = "https://gear1app.streamlit.app/registrar_ip"  # Endpoint para registrar IP
+
 def obter_ip_local():
     """Obtém o IP local da máquina automaticamente."""
     hostname = socket.gethostname()
     ip_local = socket.gethostbyname(hostname)
     return ip_local
+
+def registrar_ip():
+    """Envia o IP do client local para o Streamlit na nuvem."""
+    ip = obter_ip_local()
+    try:
+        resposta = requests.post(STREAMLIT_URL, json={"ip": ip})
+        if resposta.status_code == 200:
+            print(f"✅ IP {ip} registrado com sucesso no Streamlit!")
+        else:
+            print(f"⚠️ Erro ao registrar IP: {resposta.text}")
+    except Exception as e:
+        print(f"❌ Falha ao conectar ao Streamlit: {e}")
 
 @app.route('/get_ip', methods=['GET'])
 def get_ip():
@@ -84,4 +100,5 @@ def abrir_iracing():
         return jsonify({"erro": "Falha ao abrir o iRacing. Verifique a instalação."}), 500
 
 if __name__ == '__main__':
+    registrar_ip()  # Chama a função ao iniciar o client
     app.run(host='0.0.0.0', port=5001, debug=True)
