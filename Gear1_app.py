@@ -7,6 +7,7 @@ import sys
 from flask import Flask, request, jsonify
 import json
 import os
+import requests
 
 
 # Se estiver rodando no Windows, importe o pywin32
@@ -59,22 +60,21 @@ st.title(":green[Bem-vindo ao Gear One Head Quarter]")
 
 st.write(":green[Utilize o menu à esquerda para navegar entre as páginas.]")
 
-# 📌 Rota para registrar o IP (client chama essa URL)
-if st.query_params.get_all("registrar_ip"):
-    ip = st.query_params.get_all("ip", [None])[0]
-    if ip:
-        salvar_ip(ip)
-        st.write("✅ IP registrado com sucesso!")
 
-# 📡 Página principal do Streamlit
 st.title("📡 Controle do iRacing - Gear1App")
+
+# 🔄 Tenta buscar o IP do client local automaticamente
 st.write("🔄 Descobrindo o IP do client local...")
 
-ip_salvo = carregar_ip()
-if ip_salvo:
-    st.success(f"✅ IP do client detectado: {ip_salvo}")
-else:
-    st.warning("⚠️ Nenhum IP detectado. Verifique se o client local está rodando.")
+try:
+    response = requests.get("http://localhost:5001/get_ip", timeout=3)  # 3s de timeout
+    if response.status_code == 200:
+        ip = response.json().get("ip")
+        st.write(f"✅ IP detectado: {ip}")
+    else:
+        st.write("⚠️ Não foi possível detectar o IP do client local.")
+except requests.exceptions.RequestException:
+    st.write("⚠️ Não foi possível detectar o IP do client local.")
 
 st.write("📊 Dashboard de Dados em Tempo Real...")
 
