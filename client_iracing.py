@@ -7,8 +7,7 @@ import winreg  # Para acessar o Registro do Windows
 
 app = Flask(__name__)
 
-
-STREAMLIT_URL = "https://gear1app.streamlit.app/"  # Endpoint para registrar IP
+STREAMLIT_URL = "https://gear1app.streamlit.app/registrar_ip"  # Nova rota para salvar IP
 
 def obter_ip_local():
     """Obtém o IP local da máquina automaticamente."""
@@ -17,10 +16,10 @@ def obter_ip_local():
     return ip_local
 
 def registrar_ip():
-    """Envia o IP do client local para o Streamlit na nuvem."""
+    """Envia o IP do client local para o Streamlit e armazena num arquivo JSON."""
     ip = obter_ip_local()
     try:
-        resposta = requests.post(STREAMLIT_URL, json={"ip": ip})
+        resposta = requests.post(STREAMLIT_URL, json={"ip": ip})  # Envia o IP via JSON
         if resposta.status_code == 200:
             print(f"✅ IP {ip} registrado com sucesso no Streamlit!")
         else:

@@ -6,30 +6,29 @@ from plotly.subplots import make_subplots
 import sys
 from flask import Flask, request, jsonify
 import json
+import os
 
 
 # Se estiver rodando no Windows, importe o pywin32
 if sys.platform == "win32":
     import win32com.client
 
-# Chave para armazenar o IP na sessão do Streamlit
-if "ip_do_client" not in st.session_state:
-    st.session_state["ip_do_client"] = None
+IP_FILE = "client_ip.json"  # Arquivo para armazenar o IP do client
 
-# Simula um endpoint na própria página principal
-def registrar_ip():
-    """Recebe o IP via requisição JSON e armazena no estado do Streamlit."""
-    try:
-        req = st.query_params()  # Tenta obter dados da URL
-        ip = req.get("ip", [None])[0]
-        if ip:
-            st.session_state["ip_do_client"] = ip
-            return json.dumps({"mensagem": "IP registrado com sucesso!"})
-    except Exception as e:
-        return json.dumps({"erro": str(e)})
+# Função para salvar o IP do client no arquivo JSON
+def salvar_ip(ip):
+    with open(IP_FILE, "w") as f:
+        json.dump({"ip": ip}, f)
 
-# Tenta registrar IP (caso tenha sido enviado)
-registrar_ip()
+# Função para carregar o IP salvo
+def carregar_ip():
+    if os.path.exists(IP_FILE):
+        with open(IP_FILE, "r") as f:
+            data = json.load(f)
+            return data.get("ip")
+    return None
+
+
 
 
 st.set_page_config(
@@ -60,12 +59,20 @@ st.title(":green[Bem-vindo ao Gear One Head Quarter]")
 
 st.write(":green[Utilize o menu à esquerda para navegar entre as páginas.]")
 
-# Exibe o IP registrado na interface
+# 📌 Rota para registrar o IP (client chama essa URL)
+if st.experimental_get_query_params().get("registrar_ip"):
+    ip = st.experimental_get_query_params().get("ip", [None])[0]
+    if ip:
+        salvar_ip(ip)
+        st.write("✅ IP registrado com sucesso!")
+
+# 📡 Página principal do Streamlit
 st.title("📡 Controle do iRacing - Gear1App")
 st.write("🔄 Descobrindo o IP do client local...")
 
-if st.session_state["ip_do_client"]:
-    st.success(f"✅ IP do client detectado: {st.session_state['ip_do_client']}")
+ip_salvo = carregar_ip()
+if ip_salvo:
+    st.success(f"✅ IP do client detectado: {ip_salvo}")
 else:
     st.warning("⚠️ Nenhum IP detectado. Verifique se o client local está rodando.")
 
