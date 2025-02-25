@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Configurações do Banco (Railway fornece essas credenciais)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@host:port/database")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:FYJROFebHnWjqBGskJCdtSGTUMYtVvOK@gondola.proxy.rlwy.net:21693/railway")
 
 # Criar engine e sessão do SQLAlchemy
 engine = create_engine(DATABASE_URL)
