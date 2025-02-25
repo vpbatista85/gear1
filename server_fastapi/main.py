@@ -24,3 +24,6 @@ def salvar_telemetria(data: schemas.TelemetriaCreate, db: Session = Depends(data
 def obter_telemetria(cust_id: int, db: Session = Depends(database.get_db)):
     return db.query(models.Telemetria).filter(models.Telemetria.cust_id == cust_id).all()
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
