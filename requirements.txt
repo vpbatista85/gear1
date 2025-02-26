@@ -120,3 +120,4 @@ uvicorn
 sqlalchemy
 psycopg2
 pydantic
+psycopg2-binary  # Se estiver usando PostgreSQL

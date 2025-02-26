@@ -10,6 +10,10 @@ models.Base.metadata.create_all(bind=database.engine)
 # Inicializar FastAPI
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"message": "API funcionando!"}
+
 # Endpoint para salvar telemetria
 @app.post("/telemetria/", response_model=schemas.TelemetriaResponse)
 def salvar_telemetria(data: schemas.TelemetriaCreate, db: Session = Depends(database.get_db)):
