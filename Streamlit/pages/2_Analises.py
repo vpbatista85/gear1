@@ -373,26 +373,17 @@ def detectar_carro_pista(overview_df):
     carro = "Desconhecido"
     pista = "Desconhecida"
 
-    # Normaliza os dados para garantir que todas as células sejam string
-    for idx, row in overview_df.iterrows():
+    for row_idx in range(len(overview_df) - 1):  # evita erro ao olhar linha seguinte
         for col in overview_df.columns:
-            cell_value = str(row[col]).strip().lower()
+            valor = str(overview_df.at[row_idx, col]).strip().lower()
 
-            if "car" in cell_value and col != overview_df.columns[-1]:
-                # Tenta pegar valor da próxima coluna
-                try:
-                    carro = row[overview_df.columns[overview_df.columns.get_loc(col) + 1]]
-                except:
-                    pass
+            if "car" in valor:
+                carro = overview_df.at[row_idx + 1, col]
 
-            if "track" in cell_value and col != overview_df.columns[-1]:
-                try:
-                    pista = row[overview_df.columns[overview_df.columns.get_loc(col) + 1]]
-                except:
-                    pass
+            if "track" in valor:
+                pista = overview_df.at[row_idx + 1, col]
 
     return str(carro), str(pista)
-
 
 # Função para calcular as sequências de voltas limpas
 def calcular_sequencias_voltas_limpas(df):
@@ -429,7 +420,7 @@ def main():
     st.set_page_config(page_title="Gear 1 Post Race", page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", layout="wide")
     st.sidebar.image("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", width=128)
 
-    st.title(":green[Análise Pós Corrida]")
+    st.title(":green[Análise Pós Evento]")
 
     uploaded_files = st.sidebar.file_uploader(
         ":green[Escolha um ou mais arquivos Excel]", type=["xlsx"], accept_multiple_files=True
