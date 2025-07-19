@@ -361,6 +361,7 @@
 
 # if __name__ == "__main__":
 #     main()
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -368,24 +369,18 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-
 def detectar_carro_pista(overview_df):
     carro = "Desconhecido"
     pista = "Desconhecida"
-
-    for row_idx in range(len(overview_df) - 1):  # evita erro ao olhar linha seguinte
+    for row_idx in range(len(overview_df) - 1):
         for col in overview_df.columns:
             valor = str(overview_df.at[row_idx, col]).strip().lower()
-
             if "car" in valor:
                 carro = overview_df.at[row_idx + 1, col]
-
             if "track" in valor:
                 pista = overview_df.at[row_idx + 1, col]
-
     return str(carro), str(pista)
 
-# Função para calcular as sequências de voltas limpas
 def calcular_sequencias_voltas_limpas(df):
     sequencias = []
     for driver, group in df.groupby('Driver'):
@@ -410,21 +405,15 @@ def identificar_sequencias(df):
 
 def extrair_info_overview(xls):
     df_overview = pd.read_excel(xls, sheet_name='Overview', header=None)
-    # carro = df_overview.iloc[16, 4]  # Célula E17
-    # pista = df_overview.iloc[18, 3]  # Célula D19
     carro, pista = detectar_carro_pista(df_overview)
-
     return carro, pista
 
 def main():
     st.set_page_config(page_title="Gear 1 Post Race", page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", layout="wide")
     st.sidebar.image("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", width=128)
-
     st.title(":green[Análise Pós Evento]")
 
-    uploaded_files = st.sidebar.file_uploader(
-        ":green[Escolha um ou mais arquivos Excel]", type=["xlsx"], accept_multiple_files=True
-    )
+    uploaded_files = st.sidebar.file_uploader(":green[Escolha um ou mais arquivos Excel]", type=["xlsx"], accept_multiple_files=True)
 
     if uploaded_files:
         all_dfs = []
@@ -449,7 +438,6 @@ def main():
         if 'Started at' in final_df.columns:
             final_df['Started at'] = pd.to_datetime(final_df['Started at'], errors='coerce')
 
-        # Opções de análise
         tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro/Pista"])
 
         if tipo_analise == "Por Carro/Pista":
@@ -477,6 +465,31 @@ def main():
             fig_fuel = px.histogram(df_filtrado, x='Fuel Used', nbins=30, title='Consumo por Volta (Fuel Used)')
             st.plotly_chart(fig_fuel, use_container_width=True)
 
+        if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
+            st.subheader("Voltas Limpas vs Incidentes por Piloto")
+            grouped = df_filtrado.groupby(['Driver', 'Clean']).size().reset_index(name='Counts')
+            voltas_limpas = grouped[grouped['Clean'] == 1]
+            voltas_com_incidentes = grouped[grouped['Clean'] == 0]
+
+            fig = go.Figure()
+            fig.add_trace(go.Bar(x=voltas_limpas['Driver'], y=voltas_limpas['Counts'], name='Voltas Limpas', marker_color='rgb(25, 128, 37)'))
+            fig.add_trace(go.Bar(x=voltas_com_incidentes['Driver'], y=voltas_com_incidentes['Counts'], name='Voltas com Incidente', marker_color='rgb(255, 127, 0)'))
+            fig.update_layout(title='Total de Voltas por Piloto', xaxis_title='Piloto', yaxis_title='Número de Voltas', barmode='stack', template='plotly_white')
+            st.plotly_chart(fig)
+
+            sequencias_df = calcular_sequencias_voltas_limpas(df_filtrado)
+            maiores_sequencias = sequencias_df.groupby('Driver')['Sequence_Length'].max().reset_index()
+
+            fig_bar = go.Figure(data=[go.Bar(x=maiores_sequencias['Driver'], y=maiores_sequencias['Sequence_Length'], marker_color='rgb(15, 114, 35)')])
+            fig_bar.update_layout(title='Maior Sequência de Voltas Limpas por Piloto', xaxis_title='Piloto', yaxis_title='Número de Voltas Limpas Consecutivas', template='plotly_white')
+            st.plotly_chart(fig_bar)
+
+            for driver in sequencias_df['Driver'].unique():
+                driver_data = sequencias_df[sequencias_df['Driver'] == driver]
+                fig_hist = go.Figure(data=[go.Histogram(x=driver_data['Sequence_Length'], marker_color='rgb(15, 114, 35)', opacity=0.75)])
+                fig_hist.update_layout(title=f'Distribuição das Sequências de Voltas Limpas - {driver}', xaxis_title='Tamanho da Sequência de Voltas Limpas', yaxis_title='Frequência', template='plotly_white')
+                st.plotly_chart(fig_hist)
 
 if __name__ == "__main__":
     main()
+
