@@ -368,6 +368,32 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+
+def detectar_carro_pista(overview_df):
+    carro = "Desconhecido"
+    pista = "Desconhecida"
+
+    # Normaliza os dados para garantir que todas as células sejam string
+    for idx, row in overview_df.iterrows():
+        for col in overview_df.columns:
+            cell_value = str(row[col]).strip().lower()
+
+            if "car" in cell_value and col != overview_df.columns[-1]:
+                # Tenta pegar valor da próxima coluna
+                try:
+                    carro = row[overview_df.columns[overview_df.columns.get_loc(col) + 1]]
+                except:
+                    pass
+
+            if "track" in cell_value and col != overview_df.columns[-1]:
+                try:
+                    pista = row[overview_df.columns[overview_df.columns.get_loc(col) + 1]]
+                except:
+                    pass
+
+    return str(carro), str(pista)
+
+
 # Função para calcular as sequências de voltas limpas
 def calcular_sequencias_voltas_limpas(df):
     sequencias = []
@@ -393,8 +419,10 @@ def identificar_sequencias(df):
 
 def extrair_info_overview(xls):
     df_overview = pd.read_excel(xls, sheet_name='Overview', header=None)
-    carro = df_overview.iloc[16, 4]  # Célula E17
-    pista = df_overview.iloc[18, 3]  # Célula D19
+    # carro = df_overview.iloc[16, 4]  # Célula E17
+    # pista = df_overview.iloc[18, 3]  # Célula D19
+    carro, pista = detectar_carro_pista(df_overview)
+
     return carro, pista
 
 def main():
