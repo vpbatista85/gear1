@@ -118,6 +118,6 @@ zstandard==0.23.0
 fastapi
 uvicorn
 sqlalchemy
-psycopg2
+#psycopg2
 pydantic
 #psycopg2-binary  # Se estiver usando PostgreSQL
