@@ -376,9 +376,9 @@ def detectar_carro_pista(overview_df):
         for col in overview_df.columns:
             valor = str(overview_df.at[row_idx, col]).strip().lower()
             if "car" in valor:
-                carro = overview_df.at[row_idx + 1, col]
+                carro = overview_df.at[row_idx + 1, col + 1]
             if "track" in valor:
-                pista = overview_df.at[row_idx + 1, col]
+                pista = overview_df.at[row_idx + 1, col + 1]
     return str(carro), str(pista)
 
 def calcular_sequencias_voltas_limpas(df):
