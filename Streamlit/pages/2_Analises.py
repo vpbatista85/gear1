@@ -369,17 +369,19 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def detectar_carro_pista(overview_df): 
+def detectar_carro_pista(overview_df):
     carro = "Desconhecido"
     pista = "Desconhecida"
+    
     for row_idx in range(len(overview_df) - 1):
-        for col in overview_df.columns:
-            valor = str(overview_df.at[row_idx, col]).strip().lower()
+        for col_idx, col_name in enumerate(overview_df.columns):
+            valor = str(overview_df.at[row_idx, col_name]).strip().lower()
             if "car" in valor:
-                carro = overview_df.at[row_idx + 1, col + 1]
+                carro = str(overview_df.iat[row_idx + 1, col_idx + 1])
             if "track" in valor:
-                pista = overview_df.at[row_idx + 1, col + 1]
-    return str(carro), str(pista)
+                pista = str(overview_df.iat[row_idx + 1, col_idx + 1])
+                
+    return carro, pista
 
 
 def calcular_sequencias_voltas_limpas(df):
