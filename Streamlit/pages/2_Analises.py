@@ -426,14 +426,14 @@ def main():
             xls = pd.ExcelFile(uploaded_file)
             carro, pista = extrair_info_overview(xls)
             sheet_names = [sheet for sheet in xls.sheet_names if sheet != 'Overview']
+            info_arquivos.append(f"Arquivo: {uploaded_file.name} | Carro: {carro} | Pista: {pista}")
             for sheet in sheet_names:
                 df = pd.read_excel(xls, sheet_name=sheet)
                 df['SheetName'] = sheet
                 df['Car'] = carro
                 df['Track'] = pista
                 all_dfs.append(df)
-                info_arquivos.append(f"Arquivo: {uploaded_file.name} | Carro: {carro} | Pista: {pista}")
-
+                
         final_df = pd.concat(all_dfs, ignore_index=True)
 
         if 'Lap time' in final_df.columns:
