@@ -645,18 +645,45 @@ def main():
 
         with tab3:
             if 'Fuel used' in df_filtrado.columns:
-                # st.subheader("Histograma do Consumo de Combustível por Volta")
-                # fig_fuel = px.histogram(df_filtrado, x='Fuel used', nbins=30, title='Consumo por Volta (Fuel Used)')
-                # st.plotly_chart(fig_fuel, use_container_width=True)
-                fig_fuel = go.Figure()
+                from plotly.subplots import make_subplots
+
+                fig_fuel = make_subplots(
+                    rows=2, cols=1,
+                    shared_xaxes=False,
+                    vertical_spacing=0.15,
+                    row_heights=[0.6, 0.4],
+                    subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
+                )
+
+                # Histograma
                 fig_fuel.add_trace(go.Histogram(
                     x=df_filtrado["Fuel used"],
                     nbinsx=30,
                     marker_color=gear1_colors[1],
                     opacity=0.75,
                     name="Consumo por Volta"
-                ))
-                fig_fuel.update_layout(title_text="Consumo por Volta (Fuel Used)")
+                ), row=1, col=1)
+
+                # Boxplot por piloto
+                fig_fuel.add_trace(go.Box(
+                    x=df_filtrado["Driver"],
+                    y=df_filtrado["Fuel used"],
+                    boxpoints="outliers",
+                    marker_color=gear1_colors[2],
+                    name="Boxplot por Piloto",
+                    orientation='v'
+                ), row=2, col=1)
+
+                fig_fuel.update_layout(
+                    height=700,
+                    showlegend=False
+                )
+
+                fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
+                fig_fuel.update_yaxes(title_text="Fuel Used", row=2, col=1)
+                fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
+                fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
+
                 st.plotly_chart(fig_fuel, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
