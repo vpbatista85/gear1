@@ -522,7 +522,7 @@ def main():
             fig_combined = make_subplots(
                 rows=2, cols=1,
                 shared_xaxes=False,
-                row_heights=[0.6, 0.4],
+                row_heights=[0.4, 0.6],
                 vertical_spacing=0.15,
                 subplot_titles=(
                     "Histograma Geral para Todos os Pilotos",
@@ -565,18 +565,23 @@ def main():
 
             # Layout final
             fig_combined.update_layout(
-                height=700,
+                height=800,
                 xaxis_title="Tempo de Volta (MM:SS.mmm)",
                 yaxis_title="Frequência (Nº Voltas)",
-                yaxis2=dict(
-                    title="Tempo de Volta",
+                xaxis=dict(
                     tickmode='array',
                     tickvals=tick_vals,
                     ticktext=tick_texts,
                     range=[min_lap_time, max_lap_time]
                 ),
+                yaxis2=dict(
+                    title="Tempo de Volta",
+                    tickmode='array',
+                    tickvals=tick_vals_y,
+                    ticktext=tick_text_y,
+                ),
                 bargap=0.02,
-                showlegend=False,
+                showlegend=False
             )
 
             # Mostrar na tela
