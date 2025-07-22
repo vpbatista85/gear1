@@ -669,8 +669,10 @@ def main():
 
                 # Boxplot por piloto
                 fig_fuel.add_trace(go.Box(
-                    x=df_filtrado["Driver"],
-                    y=df_filtrado["Fuel used"],
+                    # x=df_filtrado["Driver"],
+                    # y=df_filtrado["Fuel used"],
+                    x=df_filtrado["Fuel used"],
+                    y=df_filtrado["Driver"],
                     boxpoints="outliers",
                     marker_color=gear1_colors[1],
                     name="Boxplot por Piloto",
