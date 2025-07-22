@@ -574,7 +574,14 @@ def main():
                     tickvals=tick_vals_y,
                     ticktext=tick_text_y,
                 ),
-                bargap=0.02
+                bargap=0.02,
+                xaxis2=dict(
+                        tickmode='array',
+                        tickvals=tick_vals,
+                        ticktext=tick_texts,
+                        range=[min_lap_time, max_lap_time]
+                ),
+                showlegend=False
             )
 
             # Mostrar na tela
