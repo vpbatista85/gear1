@@ -516,8 +516,8 @@ def main():
             # fig_all.update_layout(bargap=0.02)#test
             # st.plotly_chart(fig_all, use_container_width=True)
 
-            # drivers = filtered_df["Driver"].unique()
-            
+            drivers = filtered_df["Driver"].unique()
+
             # Criar figura com 2 subplots
             fig_combined = make_subplots(
                 rows=2, cols=1,
