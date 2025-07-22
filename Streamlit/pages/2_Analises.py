@@ -522,7 +522,7 @@ def main():
             fig_combined = make_subplots(
                 rows=2, cols=1,
                 shared_xaxes=False,
-                row_heights=[0.4, 0.6],
+                row_heights=[0.5, 0.5],
                 vertical_spacing=0.15,
                 subplot_titles=(
                     "Histograma Geral para Todos os Pilotos",
@@ -583,7 +583,7 @@ def main():
                 bargap=0.02,
                 showlegend=False
             )
-
+            fig_combined.update_xaxes(tickangle=45)
             # Mostrar na tela
             st.plotly_chart(fig_combined, use_container_width=True)
 
