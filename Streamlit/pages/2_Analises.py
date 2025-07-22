@@ -714,21 +714,34 @@ def main():
                 )
                 st.plotly_chart(fig_hist, use_container_width=True)
 
-                # Boxplot por Piloto (horizontal para melhorar a visualização)
+                # Agrupar por piloto e calcular estatísticas
+                q1 = df_filtrado.groupby('Driver')['Fuel used'].quantile(0.25)
+                q3 = df_filtrado.groupby('Driver')['Fuel used'].quantile(0.75)
+                iqr = q3 - q1
+
+                # Definir limites sem outliers
+                lower_bounds = q1 - 1.5 * iqr
+                upper_bounds = q3 + 1.5 * iqr
+
+                # Obter os menores e maiores valores válidos sem outliers
+                min_fuel = lower_bounds.min()
+                max_fuel = upper_bounds.max()
+
+                # Criar o boxplot com range ajustado
                 fig_box = go.Figure()
                 fig_box.add_trace(go.Box(
                     x=df_filtrado["Fuel used"],
                     y=df_filtrado["Driver"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[1],
-                    name="Boxplot por Piloto",
+                    marker_color=gear1_colors[2],
                     orientation='h'
                 ))
                 fig_box.update_layout(
-                    title_text="Boxplot do Consumo por Piloto",
+                    title_text="Boxplot do Consumo por Piloto (sem outliers no eixo)",
                     xaxis_title="Fuel Used",
                     yaxis_title="Piloto"
                 )
+                fig_box.update_xaxes(range=[min_fuel, max_fuel])  # aplica o "zoom"
                 st.plotly_chart(fig_box, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
