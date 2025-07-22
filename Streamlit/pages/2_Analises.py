@@ -556,19 +556,19 @@ def main():
                 # #teste setores
                 # sector_columns = [col for col in final_df.columns if 'Sector' in col]
         with tab4:
-            st.subheader("Temperatura ao longo do tempo")
+            # st.subheader("Temperatura ao longo do tempo")
             col1, col2 = st.columns(2)
-            if 'Track Temp' in df_filtrado.columns:
+            if 'Track temp' in df_filtrado.columns:
                 fig_track_temp = px.line(df_filtrado, x='Started at', y='Track Temp', title='Temperatura da Pista')
                 col1.plotly_chart(fig_track_temp, use_container_width=True)
-            if 'Air Temp' in df_filtrado.columns:
+            if 'Air temperature' in df_filtrado.columns:
                 fig_air_temp = px.line(df_filtrado, x='Started at', y='Air Temp', title='Temperatura do Ar')
                 col2.plotly_chart(fig_air_temp, use_container_width=True)
-                
+
         with tab3:
-            if 'Fuel Used' in df_filtrado.columns:
-                st.subheader("Histograma do Consumo de Combustível por Volta")
-                fig_fuel = px.histogram(df_filtrado, x='Fuel Used', nbins=30, title='Consumo por Volta (Fuel Used)')
+            if 'Fuel used' in df_filtrado.columns:
+                # st.subheader("Histograma do Consumo de Combustível por Volta")
+                fig_fuel = px.histogram(df_filtrado, x='Fuel used', nbins=30, title='Consumo por Volta (Fuel Used)')
                 st.plotly_chart(fig_fuel, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
