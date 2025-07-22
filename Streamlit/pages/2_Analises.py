@@ -573,7 +573,7 @@ def main():
                 fig_fuel = go.Figure()
                 fig_fuel.add_trace(go.Histogram(
                     x=df_filtrado["Fuel used"],
-                    nbinsx=30,
+                    nbinsx=5,
                     marker_color=gear1_colors[1],
                     opacity=0.75,
                     name="Consumo por Volta"
