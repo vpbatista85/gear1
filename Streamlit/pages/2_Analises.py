@@ -646,7 +646,8 @@ def main():
         with tab3:
             if 'Fuel used' in df_filtrado.columns:
                 # Cálculo de limites dinâmicos para o eixo Y do boxplot
-                fuel_used_95 = np.percentile(df_filtrado["Fuel used"].dropna(), 95)
+                fuel_used_85 = np.percentile(df_filtrado["Fuel used"].dropna(), 85)
+                fuel_used_15 = np.percentile(df_filtrado["Fuel used"].dropna(), 15)
                 fuel_used_min = df_filtrado["Fuel used"].min()
 
                 fig_fuel = make_subplots(
@@ -666,38 +667,27 @@ def main():
                     name="Consumo por Volta"
                 ), row=1, col=1)
 
-                # # Boxplot por piloto
-                # fig_fuel.add_trace(go.Box(
-                #     x=df_filtrado["Driver"],
-                #     y=df_filtrado["Fuel used"],
-                #     boxpoints="outliers",
-                #     marker_color=gear1_colors[1],
-                #     name="Boxplot por Piloto",
-                #     orientation='v'
-                # ), row=2, col=1)
-
-                # fig_fuel.update_layout(
-                #     height=700,
-                #     showlegend=False
-                # )
-
-                # # Aplica limite de range no eixo Y do boxplot
-                # fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
-                # fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_min, fuel_used_95], row=2, col=1)
-                # fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
-                # fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
-
+                # Boxplot por piloto
                 fig_fuel.add_trace(go.Box(
-                    y=df_filtrado["Driver"],
-                    x=df_filtrado["Fuel used"],
+                    x=df_filtrado["Driver"],
+                    y=df_filtrado["Fuel used"],
                     boxpoints="outliers",
                     marker_color=gear1_colors[1],
                     name="Boxplot por Piloto",
-                    orientation='h'  # ← isso muda para horizontal
+                    orientation='v'
                 ), row=2, col=1)
 
-                fig_fuel.update_xaxes(title_text="Fuel Used", range=[1.0, 2.5], row=2, col=1)
-                fig_fuel.update_yaxes(title_text="Piloto", row=2, col=1)
+                fig_fuel.update_layout(
+                    height=700,
+                    showlegend=False
+                )
+
+                # Aplica limite de range no eixo Y do boxplot
+                fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
+                fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_15 , fuel_used_85], row=2, col=1)
+                # fig_fuel.update_yaxes(range=[1.0, 2.5], row=2, col=1)
+                fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
+                fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
 
                 st.plotly_chart(fig_fuel, use_container_width=True)
 
