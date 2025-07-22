@@ -644,58 +644,92 @@ def main():
                 col2.plotly_chart(fig_air_temp, use_container_width=True)
 
         with tab3:
+            # if 'Fuel used' in df_filtrado.columns:
+            #     # Cálculo de limites dinâmicos para o eixo Y do boxplot
+            #     fuel_used_85 = np.percentile(df_filtrado["Fuel used"].dropna(), 85)
+            #     fuel_used_15 = np.percentile(df_filtrado["Fuel used"].dropna(), 15)
+            #     fuel_used_min = df_filtrado["Fuel used"].min()
+
+            #     fig_fuel = make_subplots(
+            #         rows=2, cols=1,
+            #         shared_xaxes=False,
+            #         vertical_spacing=0.15,
+            #         row_heights=[0.5, 0.5],
+            #         subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
+            #     )
+
+            #     # Histograma
+            #     fig_fuel.add_trace(go.Histogram(
+            #         x=df_filtrado["Fuel used"],
+            #         nbinsx=30,
+            #         marker_color=gear1_colors[0],
+            #         opacity=0.75,
+            #         name="Consumo por Volta"
+            #     ), row=1, col=1)
+
+            #     # Boxplot por piloto
+            #     fig_fuel.add_trace(go.Box(
+            #         # x=df_filtrado["Driver"],
+            #         # y=df_filtrado["Fuel used"],
+            #         x=df_filtrado["Fuel used"],
+            #         y=df_filtrado["Driver"],
+            #         boxpoints="outliers",
+            #         marker_color=gear1_colors[1],
+            #         name="Boxplot por Piloto",
+            #         orientation='h'
+            #     ), row=2, col=1)
+
+            #     fig_fuel.update_layout(
+            #         height=800,
+            #         showlegend=False
+            #     )
+
+            #     # Aplica limite de range no eixo Y do boxplot
+            #     # fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
+            #     fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_15 , fuel_used_85], row=2, col=1)
+            #     # fig_fuel.update_yaxes(range=[1.0, 2.5], row=2, col=1)
+
+            #     # fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
+            #     # fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
+
+            #     fig_fuel.update_xaxes(title_text="Piloto", row=1, col=1)
+            #     fig_fuel.update_xaxes(title_text="Fuel Used", row=2, col=1)
+
+            #     st.plotly_chart(fig_fuel, use_container_width=True)
+
             if 'Fuel used' in df_filtrado.columns:
-                # Cálculo de limites dinâmicos para o eixo Y do boxplot
-                fuel_used_85 = np.percentile(df_filtrado["Fuel used"].dropna(), 85)
-                fuel_used_15 = np.percentile(df_filtrado["Fuel used"].dropna(), 15)
-                fuel_used_min = df_filtrado["Fuel used"].min()
-
-                fig_fuel = make_subplots(
-                    rows=2, cols=1,
-                    shared_xaxes=False,
-                    vertical_spacing=0.15,
-                    row_heights=[0.5, 0.5],
-                    subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
-                )
-
-                # Histograma
-                fig_fuel.add_trace(go.Histogram(
+            # Histograma do Consumo
+                fig_hist = go.Figure()
+                fig_hist.add_trace(go.Histogram(
                     x=df_filtrado["Fuel used"],
                     nbinsx=30,
-                    marker_color=gear1_colors[0],
+                    marker_color=gear1_colors[1],
                     opacity=0.75,
                     name="Consumo por Volta"
-                ), row=1, col=1)
+                ))
+                fig_hist.update_layout(
+                    title_text="Histograma do Consumo por Volta (Fuel Used)",
+                    xaxis_title="Fuel Used",
+                    yaxis_title="Frequência"
+                )
+                st.plotly_chart(fig_hist, use_container_width=True)
 
-                # Boxplot por piloto
-                fig_fuel.add_trace(go.Box(
-                    # x=df_filtrado["Driver"],
-                    # y=df_filtrado["Fuel used"],
+                # Boxplot por Piloto (horizontal para melhorar a visualização)
+                fig_box = go.Figure()
+                fig_box.add_trace(go.Box(
                     x=df_filtrado["Fuel used"],
                     y=df_filtrado["Driver"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[1],
+                    marker_color=gear1_colors[2],
                     name="Boxplot por Piloto",
                     orientation='h'
-                ), row=2, col=1)
-
-                fig_fuel.update_layout(
-                    height=800,
-                    showlegend=False
+                ))
+                fig_box.update_layout(
+                    title_text="Boxplot do Consumo por Piloto",
+                    xaxis_title="Fuel Used",
+                    yaxis_title="Piloto"
                 )
-
-                # Aplica limite de range no eixo Y do boxplot
-                # fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
-                fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_15 , fuel_used_85], row=2, col=1)
-                # fig_fuel.update_yaxes(range=[1.0, 2.5], row=2, col=1)
-
-                # fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
-                # fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
-
-                fig_fuel.update_xaxes(title_text="Piloto", row=1, col=1)
-                fig_fuel.update_xaxes(title_text="Fuel Used", row=2, col=1)
-
-                st.plotly_chart(fig_fuel, use_container_width=True)
+                st.plotly_chart(fig_box, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
         #     st.subheader("Voltas Limpas vs Incidentes por Piloto")
