@@ -645,8 +645,6 @@ def main():
 
         with tab3:
             if 'Fuel used' in df_filtrado.columns:
-                from plotly.subplots import make_subplots
-
                 fig_fuel = make_subplots(
                     rows=2, cols=1,
                     shared_xaxes=False,
