@@ -674,7 +674,7 @@ def main():
                     boxpoints="outliers",
                     marker_color=gear1_colors[1],
                     name="Boxplot por Piloto",
-                    orientation='v'
+                    orientation='h'
                 ), row=2, col=1)
 
                 fig_fuel.update_layout(
