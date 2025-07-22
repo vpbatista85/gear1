@@ -645,11 +645,15 @@ def main():
 
         with tab3:
             if 'Fuel used' in df_filtrado.columns:
+                # Cálculo de limites dinâmicos para o eixo Y do boxplot
+                fuel_used_95 = np.percentile(df_filtrado["Fuel used"].dropna(), 95)
+                fuel_used_min = df_filtrado["Fuel used"].min()
+
                 fig_fuel = make_subplots(
                     rows=2, cols=1,
                     shared_xaxes=False,
                     vertical_spacing=0.15,
-                    row_heights=[0.5, 0.5],
+                    row_heights=[0.6, 0.4],
                     subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
                 )
 
@@ -677,8 +681,9 @@ def main():
                     showlegend=False
                 )
 
+                # Aplica limite de range no eixo Y do boxplot
                 fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
-                fig_fuel.update_yaxes(title_text="Fuel Used", row=2, col=1)
+                fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_min, fuel_used_95], row=2, col=1)
                 fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
                 fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
 
