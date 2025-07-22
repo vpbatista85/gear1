@@ -733,7 +733,7 @@ def main():
                     x=df_filtrado["Fuel used"],
                     y=df_filtrado["Driver"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[2],
+                    marker_color=gear1_colors[1],
                     orientation='h'
                 ))
                 fig_box.update_layout(
