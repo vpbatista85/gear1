@@ -657,7 +657,7 @@ def main():
                 fig_fuel.add_trace(go.Histogram(
                     x=df_filtrado["Fuel used"],
                     nbinsx=30,
-                    marker_color=gear1_colors[1],
+                    marker_color=gear1_colors[0],
                     opacity=0.75,
                     name="Consumo por Volta"
                 ), row=1, col=1)
@@ -667,7 +667,7 @@ def main():
                     x=df_filtrado["Driver"],
                     y=df_filtrado["Fuel used"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[2],
+                    marker_color=gear1_colors[1],
                     name="Boxplot por Piloto",
                     orientation='v'
                 ), row=2, col=1)
