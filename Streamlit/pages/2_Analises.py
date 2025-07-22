@@ -568,7 +568,7 @@ def main():
         with tab3:
             if 'Fuel used' in df_filtrado.columns:
                 # st.subheader("Histograma do Consumo de Combustível por Volta")
-                fig_fuel = px.histogram(df_filtrado, x='Fuel used', nbins=30, title='Consumo por Volta (Fuel Used)')
+                fig_fuel = px.histogram(df_filtrado, x='Fuel used', nbins=30, title='Consumo por Volta (Fuel Used)',marker_color=gear1_colors[1])
                 st.plotly_chart(fig_fuel, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
