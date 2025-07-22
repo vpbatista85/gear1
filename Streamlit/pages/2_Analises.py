@@ -691,7 +691,7 @@ def main():
                     y=df_filtrado["Driver"],
                     x=df_filtrado["Fuel used"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[2],
+                    marker_color=gear1_colors[1],
                     name="Boxplot por Piloto",
                     orientation='h'  # ← isso muda para horizontal
                 ), row=2, col=1)
