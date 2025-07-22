@@ -523,7 +523,7 @@ def main():
                 rows=2, cols=1,
                 shared_xaxes=False,
                 row_heights=[0.5, 0.5],
-                vertical_spacing=0.15,
+                vertical_spacing=0.35,
                 subplot_titles=(
                     "Histograma Geral para Todos os Pilotos",
                     "Boxplot por Piloto"
