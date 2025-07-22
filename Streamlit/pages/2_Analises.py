@@ -498,8 +498,8 @@ def main():
             #     opacity=0.75
             # ))
 
-            # tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
-            # tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
+            tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
+            tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
 
             # fig_all.update_layout(
             #     title="Histograma Geral para Todos os Pilotos",
