@@ -442,14 +442,22 @@ def main():
         if 'Started at' in final_df.columns:
             final_df['Started at'] = pd.to_datetime(final_df['Started at'], errors='coerce')
 
-        tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro/Pista"])
+        # tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro/Pista"])
 
-        if tipo_analise == "Por Carro/Pista":
-            carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(final_df['Car'].dropna().unique()))
+        # if tipo_analise == "Por Carro/Pista":
+        #     carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(final_df['Car'].dropna().unique()))
+        #     pista_sel = st.sidebar.selectbox("Escolha a Pista", sorted(final_df['Track'].dropna().unique()))
+        #     df_filtrado = final_df[(final_df['Car'] == carro_sel) & (final_df['Track'] == pista_sel)]
+        # else:
+        #     df_filtrado = final_df
+        tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro"])
+        if tipo_analise == "Por Carro":
             pista_sel = st.sidebar.selectbox("Escolha a Pista", sorted(final_df['Track'].dropna().unique()))
+            df_filtrado = final_df[(final_df['Track'] == pista_sel)]
+        elif tipo_analise == "Por Piloto":
+            pista_sel = st.sidebar.selectbox("Escolha a Pista", sorted(final_df['Track'].dropna().unique()))
+            carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(final_df['Car'].dropna().unique()))
             df_filtrado = final_df[(final_df['Car'] == carro_sel) & (final_df['Track'] == pista_sel)]
-        else:
-            df_filtrado = final_df
 
         tab1, tab2, tab3, tab4, tab5 = st.tabs([":green[Lap Time]", ":green[Safety]", ":green[Fuel]", ":green[Temperature]",":orange[Files]"])
         # Define color sets of paintings
