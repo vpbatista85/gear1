@@ -573,6 +573,7 @@ def main():
                     tickmode='array',
                     tickvals=tick_vals,
                     ticktext=tick_texts,
+                    range=[min_lap_time, max_lap_time]
                 ),
                 bargap=0.02,
                 showlegend=False,
