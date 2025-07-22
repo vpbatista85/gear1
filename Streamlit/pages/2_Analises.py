@@ -571,17 +571,11 @@ def main():
                 yaxis2=dict(
                     title="Tempo de Volta",
                     tickmode='array',
-                    tickvals=tick_vals_y,
-                    ticktext=tick_text_y,
+                    tickvals=tick_vals,
+                    ticktext=tick_text,
                 ),
                 bargap=0.02,
-                xaxis2=dict(
-                        tickmode='array',
-                        tickvals=tick_vals,
-                        ticktext=tick_texts,
-                        range=[min_lap_time, max_lap_time]
-                ),
-                showlegend=False
+                showlegend=False,
             )
 
             # Mostrar na tela
