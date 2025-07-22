@@ -451,13 +451,14 @@ def main():
         else:
             df_filtrado = final_df
 
-        st.subheader("Arquivos Carregados:")
-        for info in info_arquivos:
-            st.text(info)
-
-        tab1, tab2, tab3, tab4 = st.tabs([":green[Lap Time]", ":green[Safety]", ":green[Fuel]", ":green[Temperature]"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([":green[Lap Time]", ":green[Safety]", ":green[Fuel]", ":green[Temperature]",":orange[Files]"])
         # Define color sets of paintings
         gear1_colors = ['rgb(25, 128, 37)','rgb(255, 127, 0)']#verde, laranja
+
+        with tab5:
+            st.subheader("Arquivos Carregados:")
+            for info in info_arquivos:
+                st.text(info)
 
         with tab1:
             
