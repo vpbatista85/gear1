@@ -572,7 +572,7 @@ def main():
                     title="Tempo de Volta",
                     tickmode='array',
                     tickvals=tick_vals,
-                    ticktext=tick_text,
+                    ticktext=tick_texts,
                 ),
                 bargap=0.02,
                 showlegend=False,
