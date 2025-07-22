@@ -490,33 +490,95 @@ def main():
             max_lap_time = filtered_df["Lap time"].dt.total_seconds().max()
             num_bins = int(np.ceil((max_lap_time - min_lap_time) / bin_width))
 
-            fig_all = go.Figure()
-            fig_all.add_trace(go.Histogram(
-                x=filtered_df["Lap time"].dt.total_seconds(),
-                nbinsx=num_bins,
-                marker_color=gear1_colors[0],
-                opacity=0.75
-            ))
+            # fig_all = go.Figure()
+            # fig_all.add_trace(go.Histogram(
+            #     x=filtered_df["Lap time"].dt.total_seconds(),
+            #     nbinsx=num_bins,
+            #     marker_color=gear1_colors[0],
+            #     opacity=0.75
+            # ))
 
-            tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
-            tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
+            # tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
+            # tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
 
-            fig_all.update_layout(
-                title="Histograma Geral para Todos os Pilotos",
-                xaxis_title="Tempo de Volta (MM:SS.mmm)",
-                yaxis_title="Frequência (Nº Voltas)",
-                xaxis=dict(
-                    tickmode='array',
-                    tickvals=tick_vals,
-                    ticktext=tick_texts,
-                    range=[min_lap_time, max_lap_time]
+            # fig_all.update_layout(
+            #     title="Histograma Geral para Todos os Pilotos",
+            #     xaxis_title="Tempo de Volta (MM:SS.mmm)",
+            #     yaxis_title="Frequência (Nº Voltas)",
+            #     xaxis=dict(
+            #         tickmode='array',
+            #         tickvals=tick_vals,
+            #         ticktext=tick_texts,
+            #         range=[min_lap_time, max_lap_time]
+            #     )
+            # )
+
+            # fig_all.update_layout(bargap=0.02)#test
+            # st.plotly_chart(fig_all, use_container_width=True)
+
+            # drivers = filtered_df["Driver"].unique()
+            
+            # Criar figura com 2 subplots
+            fig_combined = make_subplots(
+                rows=2, cols=1,
+                shared_xaxes=False,
+                row_heights=[0.6, 0.4],
+                vertical_spacing=0.15,
+                subplot_titles=(
+                    "Histograma Geral para Todos os Pilotos",
+                    "Boxplot por Piloto"
                 )
             )
 
-            fig_all.update_layout(bargap=0.02)#test
-            st.plotly_chart(fig_all, use_container_width=True)
+            # Histograma na primeira linha
+            fig_combined.add_trace(
+                go.Histogram(
+                    x=filtered_df["Lap time"].dt.total_seconds(),
+                    nbinsx=num_bins,
+                    marker_color=gear1_colors[0],
+                    opacity=0.75,
+                    name="Histograma"
+                ),
+                row=1, col=1
+            )
 
-            drivers = filtered_df["Driver"].unique()
+            # Boxplot por piloto na segunda linha
+            for driver in drivers:
+                driver_laps = filtered_df[filtered_df["Driver"] == driver]["Lap time"].dt.total_seconds()
+                fig_combined.add_trace(
+                    go.Box(
+                        y=driver_laps,
+                        name=driver,
+                        boxpoints='outliers',
+                        marker_color=gear1_colors[1]
+                    ),
+                    row=2, col=1
+                )
+
+            # Definir limites do eixo Y com base nos tempos de volta
+            boxplot_min = filtered_df["Lap time"].dt.total_seconds().min()
+            boxplot_max = filtered_df["Lap time"].dt.total_seconds().max()
+            boxplot_step = bin_width  # mesmo passo do histograma
+
+            tick_vals_y = np.arange(boxplot_min, boxplot_max + boxplot_step, boxplot_step)
+            tick_text_y = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals_y]
+
+            # Layout final
+            fig_combined.update_layout(
+                height=700,
+                xaxis_title="Tempo de Volta (MM:SS.mmm)",
+                yaxis_title="Frequência (Nº Voltas)",
+                yaxis2=dict(
+                    title="Tempo de Volta",
+                    tickmode='array',
+                    tickvals=tick_vals_y,
+                    ticktext=tick_text_y,
+                ),
+                bargap=0.02
+            )
+
+            # Mostrar na tela
+            st.plotly_chart(fig_combined, use_container_width=True)
 
             for driver in drivers:
                 driver_data = filtered_df[filtered_df["Driver"] == driver]
