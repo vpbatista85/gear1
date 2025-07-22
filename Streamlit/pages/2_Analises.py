@@ -649,7 +649,7 @@ def main():
                     rows=2, cols=1,
                     shared_xaxes=False,
                     vertical_spacing=0.15,
-                    row_heights=[0.6, 0.4],
+                    row_heights=[0.5, 0.5],
                     subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
                 )
 
