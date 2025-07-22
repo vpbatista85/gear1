@@ -654,7 +654,7 @@ def main():
                     rows=2, cols=1,
                     shared_xaxes=False,
                     vertical_spacing=0.15,
-                    row_heights=[0.6, 0.4],
+                    row_heights=[0.5, 0.5],
                     subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
                 )
 
@@ -680,16 +680,20 @@ def main():
                 ), row=2, col=1)
 
                 fig_fuel.update_layout(
-                    height=700,
+                    height=800,
                     showlegend=False
                 )
 
                 # Aplica limite de range no eixo Y do boxplot
-                fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
+                # fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
                 fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_15 , fuel_used_85], row=2, col=1)
                 # fig_fuel.update_yaxes(range=[1.0, 2.5], row=2, col=1)
-                fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
-                fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
+
+                # fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
+                # fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
+
+                fig_fuel.update_xaxes(title_text="Piloto", row=1, col=1)
+                fig_fuel.update_xaxes(title_text="Fuel Used", row=2, col=1)
 
                 st.plotly_chart(fig_fuel, use_container_width=True)
 
