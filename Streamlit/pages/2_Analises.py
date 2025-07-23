@@ -638,9 +638,11 @@ def main():
             col1, col2 = st.columns(2)
             if 'Track temp' in df_filtrado.columns:
                 fig_track_temp = px.line(df_filtrado, x='Started at', y='Track temp', title='Temperatura da Pista')
+                fig_track_temp.update_layout(marker_color=gear1_colors[0])
                 col1.plotly_chart(fig_track_temp, use_container_width=True)
             if 'Air temperature' in df_filtrado.columns:
                 fig_air_temp = px.line(df_filtrado, x='Started at', y='Air temperature', title='Temperatura do Ar')
+                fig_air_temp.update_layout(marker_color=gear1_colors[0])
                 col2.plotly_chart(fig_air_temp, use_container_width=True)
 
         with tab3:
