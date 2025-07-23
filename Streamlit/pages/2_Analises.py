@@ -474,7 +474,6 @@ def main():
                 st.text(info)
 
         with tab1:
-            
             bin_width = st.sidebar.slider(
                 ":green[Tamanho do Intervalo (segundos)]",
                 min_value=0.250,
@@ -499,18 +498,13 @@ def main():
             tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
 
             drivers = filtered_df["Driver"].unique()
-            cars=filtered_df["Car"].unique()
-            ####Grafico de stints###
-            # Remove valores nulos
+            cars = filtered_df["Car"].unique()
+
+            #### Gráfico de stints ###
             df_valid = df_filtrado.dropna(subset=['Run', 'Driver'])
-
-            # Agrupa o número de voltas por piloto e stint
             stint_counts = df_valid.groupby(['Driver', 'Run']).size().reset_index(name='Voltas')
-
-            # Converte 'Run' para string para melhor visualização no eixo X
             stint_counts['Run'] = stint_counts['Run'].astype(str)
 
-            # Gráfico único com barras agrupadas por piloto
             fig = px.bar(
                 stint_counts,
                 x='Run',
@@ -520,110 +514,103 @@ def main():
                 category_orders={'Run': sorted(stint_counts['Run'].unique(), key=lambda x: int(x))},
                 title='Quantidade de Voltas por Stint (Run) por Piloto'
             )
-
-            fig.update_layout(
-                xaxis_title='Stint (Run)',
-                yaxis_title='Quantidade de Voltas',
-                height=500
-            )
-
+            fig.update_layout(xaxis_title='Stint (Run)', yaxis_title='Quantidade de Voltas', height=500)
             st.plotly_chart(fig, use_container_width=True)
 
-            # Criar figura com 2 subplots
+            #### Gráficos principais: Histograma e Boxplot ####
             fig_combined = make_subplots(
                 rows=2, cols=1,
                 shared_xaxes=False,
                 row_heights=[0.5, 0.5],
                 vertical_spacing=0.20,
                 subplot_titles=(
-                    "Histograma Geral para Todos os Pilotos",
-                    "Boxplot por Piloto"
+                    "Histograma Geral",
+                    "Boxplot"
                 )
             )
 
-            # Histograma na primeira linha
+            agrupador = "Driver" if tipo_analise == "Por Piloto" else "Car"
+            cores_hist = gear1_colors[0]
+            cores_box = gear1_colors[1]
+
             fig_combined.add_trace(
                 go.Histogram(
                     x=filtered_df["Lap time"].dt.total_seconds(),
                     nbinsx=num_bins,
-                    marker_color=gear1_colors[0],
+                    marker_color=cores_hist,
                     opacity=0.75,
                     name="Histograma"
                 ),
                 row=1, col=1
             )
 
-            # Boxplot por piloto na segunda linha
-            for driver in drivers:
-                driver_laps = filtered_df[filtered_df["Driver"] == driver]["Lap time"].dt.total_seconds()
+            for grupo in filtered_df[agrupador].unique():
+                grupo_laps = filtered_df[filtered_df[agrupador] == grupo]["Lap time"].dt.total_seconds()
                 fig_combined.add_trace(
                     go.Box(
-                        y=driver_laps,
-                        name=driver,
+                        y=grupo_laps,
+                        name=grupo,
                         boxpoints='outliers',
-                        marker_color=gear1_colors[1],
+                        marker_color=cores_box,
                         boxmean=True
                     ),
                     row=2, col=1
                 )
 
-            # Definir limites do eixo Y com base nos tempos de volta
             boxplot_min = filtered_df["Lap time"].dt.total_seconds().min()
             boxplot_max = filtered_df["Lap time"].dt.total_seconds().max()
-            boxplot_step = bin_width  # mesmo passo do histograma
+            boxplot_step = bin_width
 
             tick_vals_y = np.arange(boxplot_min, boxplot_max + boxplot_step, boxplot_step)
             tick_text_y = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals_y]
 
-            # Layout final
             fig_combined.update_layout(
                 height=800,
                 xaxis_title="Tempo de Volta (MM:SS.mmm)",
                 yaxis_title="Frequência (Nº Voltas)",
-                xaxis=dict(
-                    tickmode='array',
-                    tickvals=tick_vals,
-                    ticktext=tick_texts,
-                    range=[min_lap_time, max_lap_time]
-                ),
-                yaxis2=dict(
-                    title="Tempo de Volta",
-                    tickmode='array',
-                    tickvals=tick_vals_y,
-                    ticktext=tick_text_y,
-                ),
+                xaxis=dict(tickmode='array', tickvals=tick_vals, ticktext=tick_texts, range=[min_lap_time, max_lap_time]),
+                yaxis2=dict(title="Tempo de Volta", tickmode='array', tickvals=tick_vals_y, ticktext=tick_text_y),
                 bargap=0.02,
                 showlegend=False
             )
             fig_combined.update_xaxes(tickangle=45)
-            # Mostrar na tela
             st.plotly_chart(fig_combined, use_container_width=True)
 
-            for driver in drivers:
-                driver_data = filtered_df[filtered_df["Driver"] == driver]
+            ### Adiciona histogramas por Carro e Piloto (facetado) ###
+            fig_combo = px.histogram(
+                filtered_df,
+                x="Lap time",
+                color="Driver",
+                facet_col="Car",
+                nbins=num_bins,
+                title="Histograma de Tempo de Volta por Piloto e Carro"
+            )
+            fig_combo.update_xaxes(tickformat="%M:%S.%L")
+            st.plotly_chart(fig_combo, use_container_width=True)
+
+            ### Gráficos individuais por grupo (piloto ou carro) ###
+            for grupo in filtered_df[agrupador].unique():
+                grupo_data = filtered_df[filtered_df[agrupador] == grupo]
 
                 fig = make_subplots(rows=1, cols=2, shared_yaxes=True, column_widths=[0.7, 0.3])
 
                 fig.add_trace(go.Histogram(
-                    x=driver_data["Lap time"].dt.total_seconds(),
+                    x=grupo_data["Lap time"].dt.total_seconds(),
                     nbinsx=num_bins,
-                    marker_color=gear1_colors[1],
+                    marker_color=cores_box,
                     opacity=0.75,
                     name="Histograma"
                 ), row=1, col=1)
 
                 fig.add_trace(go.Box(
-                    x=driver_data["Lap time"].dt.total_seconds(),
-                    marker_color=gear1_colors[1],
+                    x=grupo_data["Lap time"].dt.total_seconds(),
+                    marker_color=cores_box,
                     name="Box Plot",
                     boxmean=True,
-                    # boxpoints='all',
-                    # jitter=0.3,
-                    # pointpos=-1.8,
                 ), row=1, col=2)
 
                 fig.update_layout(
-                    title=f"Análise para {driver}",
+                    title=f"Análise para {grupo}",
                     xaxis_title="Tempo de Volta (MM:SS.mmm)",
                     yaxis_title="Frequência (Nº Voltas)",
                     xaxis=dict(
@@ -638,14 +625,11 @@ def main():
                         ticktext=tick_texts,
                         range=[min_lap_time, max_lap_time]
                     ),
-                    showlegend=False
+                    showlegend=False,
+                    bargap=0.02
                 )
                 fig.update_xaxes(tickangle=45)
-                fig.update_layout(bargap=0.02)
                 st.plotly_chart(fig, use_container_width=True)
-
-                # #teste setores
-                # sector_columns = [col for col in final_df.columns if 'Sector' in col]
         with tab4:
             # st.subheader("Temperatura ao longo do tempo")
             col1, col2 = st.columns(2)
