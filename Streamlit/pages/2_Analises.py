@@ -604,6 +604,7 @@ def main():
                     x=driver_data["Lap time"].dt.total_seconds(),
                     marker_color=gear1_colors[1],
                     name="Box Plot",
+                    boxmean=True,
                     # boxpoints='all',
                     # jitter=0.3,
                     # pointpos=-1.8,
