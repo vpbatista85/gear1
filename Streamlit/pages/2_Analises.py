@@ -1194,50 +1194,6 @@ def main():
                 template='plotly_white'
             )
 
-            # Converter a coluna 'Started at' para datetime se ainda não foi feito
-            df_filtrado['Started at'] = pd.to_datetime(df_filtrado['Started at'])
-
-            # Calcular o tempo desde o início da sessão em horas
-            start_time = df_filtrado['Started at'].min()
-            df_filtrado['Tempo desde início (h)'] = (df_filtrado['Started at'] - start_time).dt.total_seconds() / 3600
-
-            # Calcular incidentes por volta (0 = incidente, 1 = limpa => 1 - Clean = incidente)
-            df_filtrado['Incidente'] = 1 - df_filtrado['Clean']
-
-            # Arredondar a hora para criar buckets
-            df_filtrado['Hora arredondada'] = df_filtrado['Tempo desde início (h)'].apply(lambda x: int(x))
-
-            # Agrupar por piloto e hora
-            incidentes_por_hora = df_filtrado.groupby(['Driver', 'Hora arredondada'])['Incidente'].sum().reset_index()
-
-            # Obter lista de pilotos únicos
-            pilotos = incidentes_por_hora['Driver'].unique()
-
-            # Criar subplots com um gráfico por piloto
-            n_pilotos = len(pilotos)
-            fig = make_subplots(rows=n_pilotos, cols=1, shared_xaxes=True, subplot_titles=pilotos)
-
-            for i, piloto in enumerate(pilotos):
-                dados_piloto = incidentes_por_hora[incidentes_por_hora['Driver'] == piloto]
-                fig.add_trace(
-                    go.Bar(
-                        x=dados_piloto['Hora arredondada'],
-                        y=dados_piloto['Incidente'],
-                        name=piloto,
-                        marker_color=gear1_colors[i % len(gear1_colors)]
-                    ),
-                    row=i+1, col=1
-                )
-
-            fig.update_layout(
-                height=250 * n_pilotos,
-                title_text="Taxa de Incidentes por Hora Pilotada (Separado por Piloto)",
-                xaxis_title="Horas desde o início da sessão",
-                yaxis_title="Número de Incidentes por Hora",
-                showlegend=False
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
