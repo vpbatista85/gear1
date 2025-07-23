@@ -714,35 +714,38 @@ def main():
                 )
                 st.plotly_chart(fig_hist, use_container_width=True)
 
-                # Agrupar por piloto e calcular estatísticas
+                # Calcular Q1, Q3 e IQR para cada piloto
                 q1 = df_filtrado.groupby('Driver')['Fuel used'].quantile(0.25)
                 q3 = df_filtrado.groupby('Driver')['Fuel used'].quantile(0.75)
                 iqr = q3 - q1
 
-                # Definir limites sem outliers
+                # Limites sem outliers
                 lower_bounds = q1 - 1.5 * iqr
                 upper_bounds = q3 + 1.5 * iqr
 
-                # Obter os menores e maiores valores válidos sem outliers
+                # Intervalo de Y para zoom
                 min_fuel = lower_bounds.min()
                 max_fuel = upper_bounds.max()
 
-                # Criar o boxplot com range ajustado
-                fig_box = go.Figure()
-                fig_box.add_trace(go.Box(
-                    x=df_filtrado["Fuel used"],
-                    y=df_filtrado["Driver"],
+                # Criar boxplot vertical
+                fig_box_vertical = go.Figure()
+                fig_box_vertical.add_trace(go.Box(
+                    y=df_filtrado["Fuel used"],
+                    x=df_filtrado["Driver"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[1],
-                    orientation='h'
+                    marker_color=gear1_colors[2],
+                    orientation='v'
                 ))
-                fig_box.update_layout(
-                    title_text="Boxplot do Consumo por Piloto (sem outliers no eixo)",
-                    xaxis_title="Fuel Used",
-                    yaxis_title="Piloto"
+
+                fig_box_vertical.update_layout(
+                    title_text="Boxplot do Consumo de Combustível por Piloto",
+                    xaxis_title="Piloto",
+                    yaxis_title="Consumo (L)",
+                    yaxis=dict(range=[min_fuel, max_fuel]),
+                    margin=dict(l=40, r=40, t=60, b=120)
                 )
-                fig_box.update_xaxes(range=[min_fuel, max_fuel])  # aplica o "zoom"
-                st.plotly_chart(fig_box, use_container_width=True)
+
+                st.plotly_chart(fig_box_vertical, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
         #     st.subheader("Voltas Limpas vs Incidentes por Piloto")
