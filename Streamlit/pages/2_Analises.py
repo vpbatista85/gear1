@@ -735,7 +735,7 @@ def main():
                     boxpoints="outliers",
                     marker_color=gear1_colors[1],
                     orientation='v',
-                    boxmean='True'
+                    boxmean=True
                 ))
 
                 fig_box_vertical.update_layout(
