@@ -657,32 +657,98 @@ def main():
 
             # Histogramas e Box plots
             if 'Track temp' in df_filtrado.columns:
-                with col3:
-                    st.plotly_chart(
-                        px.histogram(df_filtrado, x='Track temp', nbins=20, title='Histograma - Temperatura da Pista',
-                                    color_discrete_sequence=[gear1_colors[0]]),
-                                    boxmean=True,
-                        use_container_width=True
-                    )
-                    st.plotly_chart(
-                        px.box(df_filtrado, y='Track temp', title='Box Plot - Temperatura da Pista',
-                            color_discrete_sequence=[gear1_colors[0]]),
-                            boxmean=True,
-                        use_container_width=True
-                    )
+                st.subheader("Análise da Temperatura da Pista")
+
+                # Histograma
+                fig_hist_track = go.Figure()
+                fig_hist_track.add_trace(go.Histogram(
+                    x=df_filtrado["Track temp"],
+                    nbinsx=30,
+                    marker_color=gear1_colors[0],
+                    opacity=0.75,
+                    name="Temperatura da Pista"
+                ))
+                fig_hist_track.update_layout(
+                    title_text="Histograma da Temperatura da Pista",
+                    xaxis_title="Track temp (°C)",
+                    yaxis_title="Frequência"
+                )
+                st.plotly_chart(fig_hist_track, use_container_width=True)
+
+                # Boxplot
+                q1_track = df_filtrado.groupby('Driver')['Track temp'].quantile(0.25)
+                q3_track = df_filtrado.groupby('Driver')['Track temp'].quantile(0.75)
+                iqr_track = q3_track - q1_track
+                lower_bounds_track = q1_track - 1.5 * iqr_track
+                upper_bounds_track = q3_track + 1.5 * iqr_track
+                min_track = lower_bounds_track.min()
+                max_track = upper_bounds_track.max()
+
+                fig_box_track = go.Figure()
+                fig_box_track.add_trace(go.Box(
+                    y=df_filtrado["Track temp"],
+                    x=df_filtrado["Driver"],
+                    boxpoints="outliers",
+                    marker_color=gear1_colors[1],
+                    orientation='v',
+                    boxmean=True
+                ))
+                fig_box_track.update_layout(
+                    title_text="Boxplot da Temperatura da Pista por Piloto",
+                    xaxis_title="Piloto",
+                    yaxis_title="Temperatura da Pista (°C)",
+                    yaxis=dict(range=[min_track, max_track]),
+                    margin=dict(l=40, r=40, t=60, b=120),
+                    showlegend=False
+                )
+                st.plotly_chart(fig_box_track, use_container_width=True)
 
             if 'Air temperature' in df_filtrado.columns:
-                with col4:
-                    st.plotly_chart(
-                        px.histogram(df_filtrado, x='Air temperature', nbins=20, title='Histograma - Temperatura do Ar',
-                                    color_discrete_sequence=[gear1_colors[1]]),
-                        use_container_width=True
-                    )
-                    st.plotly_chart(
-                        px.box(df_filtrado, y='Air temperature', title='Box Plot - Temperatura do Ar',
-                            color_discrete_sequence=[gear1_colors[1]]),
-                        use_container_width=True
-                    )
+                st.subheader("Análise da Temperatura do Ar")
+
+                # Histograma
+                fig_hist_air = go.Figure()
+                fig_hist_air.add_trace(go.Histogram(
+                    x=df_filtrado["Air temperature"],
+                    nbinsx=30,
+                    marker_color=gear1_colors[2],
+                    opacity=0.75,
+                    name="Temperatura do Ar"
+                ))
+                fig_hist_air.update_layout(
+                    title_text="Histograma da Temperatura do Ar",
+                    xaxis_title="Air temperature (°C)",
+                    yaxis_title="Frequência"
+                )
+                st.plotly_chart(fig_hist_air, use_container_width=True)
+
+                # Boxplot
+                q1_air = df_filtrado.groupby('Driver')['Air temperature'].quantile(0.25)
+                q3_air = df_filtrado.groupby('Driver')['Air temperature'].quantile(0.75)
+                iqr_air = q3_air - q1_air
+                lower_bounds_air = q1_air - 1.5 * iqr_air
+                upper_bounds_air = q3_air + 1.5 * iqr_air
+                min_air = lower_bounds_air.min()
+                max_air = upper_bounds_air.max()
+
+                fig_box_air = go.Figure()
+                fig_box_air.add_trace(go.Box(
+                    y=df_filtrado["Air temperature"],
+                    x=df_filtrado["Driver"],
+                    boxpoints="outliers",
+                    marker_color=gear1_colors[3],
+                    orientation='v',
+                    boxmean=True
+                ))
+                fig_box_air.update_layout(
+                    title_text="Boxplot da Temperatura do Ar por Piloto",
+                    xaxis_title="Piloto",
+                    yaxis_title="Temperatura do Ar (°C)",
+                    yaxis=dict(range=[min_air, max_air]),
+                    margin=dict(l=40, r=40, t=60, b=120),
+                    showlegend=False
+                )
+                st.plotly_chart(fig_box_air, use_container_width=True)
 
         with tab3:
             # if 'Fuel used' in df_filtrado.columns:
