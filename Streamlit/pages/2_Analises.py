@@ -743,7 +743,8 @@ def main():
                     xaxis_title="Piloto",
                     yaxis_title="Consumo (L)",
                     yaxis=dict(range=[min_fuel, max_fuel]),
-                    margin=dict(l=40, r=40, t=60, b=120)
+                    margin=dict(l=40, r=40, t=60, b=120),
+                    showlegend=True
                 )
 
                 st.plotly_chart(fig_box_vertical, use_container_width=True)
