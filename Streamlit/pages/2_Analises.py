@@ -882,6 +882,35 @@ def main():
 
                 st.plotly_chart(fig_box_vertical, use_container_width=True)
 
+                if 'Fuel used' in df_filtrado.columns and 'Lap time' in df_filtrado.columns:
+
+                    fig_scatter = go.Figure()
+
+                    for driver in df_filtrado['Driver'].unique():
+                        df_driver = df_filtrado[df_filtrado['Driver'] == driver]
+                        fig_scatter.add_trace(go.Scatter(
+                            x=df_driver['Fuel used'],
+                            y=df_driver['Lap time'],
+                            mode='markers',
+                            name=driver,
+                            marker=dict(size=8),
+                            hovertemplate=(
+                                f"<b>{driver}</b><br>"
+                                "Fuel used: %{x:.2f} L<br>"
+                                "Lap time: %{y}<extra></extra>"
+                            )
+                        ))
+
+                    fig_scatter.update_layout(
+                        title="Correlação entre Consumo de Combustível e Tempo de Volta",
+                        xaxis_title="Consumo de Combustível (L)",
+                        yaxis_title="Tempo de Volta",
+                        legend_title="Piloto",
+                        margin=dict(l=40, r=40, t=60, b=40)
+                    )
+
+                    st.plotly_chart(fig_scatter, use_container_width=True)
+
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
         #     st.subheader("Voltas Limpas vs Incidentes por Piloto")
         #     grouped = df_filtrado.groupby(['Driver', 'Clean']).size().reset_index(name='Counts')
