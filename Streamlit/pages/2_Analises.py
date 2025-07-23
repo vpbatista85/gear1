@@ -550,7 +550,8 @@ def main():
                         y=driver_laps,
                         name=driver,
                         boxpoints='outliers',
-                        marker_color=gear1_colors[1]
+                        marker_color=gear1_colors[1],
+                        boxmean=True
                     ),
                     row=2, col=1
                 )
