@@ -521,6 +521,37 @@ def main():
             # st.plotly_chart(fig_all, use_container_width=True)
 
             drivers = filtered_df["Driver"].unique()
+            cars=filtered_df["Car"].unique()
+            ####Grafico de stints###
+            # Certifique-se de que não há valores nulos em 'Run' ou 'Driver'
+            df_valid = df_filtrado.dropna(subset=['Run', 'Driver'])
+
+            # Agrupa o número de voltas por piloto e stint
+            stint_counts = df_valid.groupby(['Driver', 'Run']).size().reset_index(name='Voltas')
+
+            # Converte 'Run' para string (para que apareça como categorias no eixo X)
+            stint_counts['Run'] = stint_counts['Run'].astype(str)
+
+            # Cria o gráfico de barras com um facet para cada piloto
+            fig = px.bar(
+                stint_counts,
+                x='Run',
+                y='Voltas',
+                color='Driver',
+                barmode='group',
+                facet_col='Driver',
+                category_orders={'Run': sorted(stint_counts['Run'].unique(), key=lambda x: int(x))},
+                title='Quantidade de Voltas por Stint (Run) por Piloto'
+            )
+
+            fig.update_layout(
+                xaxis_title='Stint (Run)',
+                yaxis_title='Quantidade de Voltas',
+                height=500 + len(stint_counts['Driver'].unique()) * 150,
+                showlegend=False
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
             # Criar figura com 2 subplots
             fig_combined = make_subplots(
