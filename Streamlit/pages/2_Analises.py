@@ -434,8 +434,16 @@ def main():
                 df['Car'] = carro
                 df['Track'] = pista
                 all_dfs.append(df)
-                
+
+        # Etapa 2: Concatenar os dados
         final_df = pd.concat(all_dfs, ignore_index=True)
+
+        # Etapa 3: Seleção via multiselect
+        sheet_options = final_df['SheetName'].unique().tolist()
+        selected_sheets = st.multiselect("Selecionar stints (SheetName)", options=sheet_options, default=sheet_options)
+
+        # Etapa 4: Filtrar o DataFrame com base na seleção
+        final_df = final_df[final_df['SheetName'].isin(selected_sheets)]
 
         if 'Lap time' in final_df.columns:
             final_df['Lap time'] = pd.to_timedelta(final_df['Lap time'], errors='coerce')
