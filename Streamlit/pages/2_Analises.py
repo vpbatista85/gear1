@@ -450,14 +450,7 @@ def main():
         if 'Started at' in final_df.columns:
             final_df['Started at'] = pd.to_datetime(final_df['Started at'], errors='coerce')
 
-        # tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro/Pista"])
 
-        # if tipo_analise == "Por Carro/Pista":
-        #     carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(final_df['Car'].dropna().unique()))
-        #     pista_sel = st.sidebar.selectbox("Escolha a Pista", sorted(final_df['Track'].dropna().unique()))
-        #     df_filtrado = final_df[(final_df['Car'] == carro_sel) & (final_df['Track'] == pista_sel)]
-        # else:
-        #     df_filtrado = final_df
         tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro"])
         if tipo_analise == "Por Carro":
             pista_sel = st.sidebar.selectbox("Escolha a Pista", sorted(final_df['Track'].dropna().unique()))
@@ -502,31 +495,8 @@ def main():
             max_lap_time = filtered_df["Lap time"].dt.total_seconds().max()
             num_bins = int(np.ceil((max_lap_time - min_lap_time) / bin_width))
 
-            # fig_all = go.Figure()
-            # fig_all.add_trace(go.Histogram(
-            #     x=filtered_df["Lap time"].dt.total_seconds(),
-            #     nbinsx=num_bins,
-            #     marker_color=gear1_colors[0],
-            #     opacity=0.75
-            # ))
-
             tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
             tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
-
-            # fig_all.update_layout(
-            #     title="Histograma Geral para Todos os Pilotos",
-            #     xaxis_title="Tempo de Volta (MM:SS.mmm)",
-            #     yaxis_title="Frequência (Nº Voltas)",
-            #     xaxis=dict(
-            #         tickmode='array',
-            #         tickvals=tick_vals,
-            #         ticktext=tick_texts,
-            #         range=[min_lap_time, max_lap_time]
-            #     )
-            # )
-
-            # fig_all.update_layout(bargap=0.02)#test
-            # st.plotly_chart(fig_all, use_container_width=True)
 
             drivers = filtered_df["Driver"].unique()
             cars=filtered_df["Car"].unique()
@@ -699,11 +669,6 @@ def main():
             # Histogramas e Box plots
             if 'Track temp' in df_filtrado.columns:
                 with col3:
-                    # st.plotly_chart(
-                    #     px.histogram(df_filtrado, x='Track temp', nbins=20, title='Histograma - Temperatura da Pista',
-                    #                 color_discrete_sequence=[gear1_colors[0]]),
-                    #     use_container_width=True
-                    # )
                     st.plotly_chart(
                         px.box(df_filtrado, y='Track temp', title='Box Plot - Temperatura da Pista',
                             color_discrete_sequence=[gear1_colors[0]]),
@@ -712,11 +677,6 @@ def main():
 
             if 'Air temperature' in df_filtrado.columns:
                 with col4:
-                    # st.plotly_chart(
-                    #     px.histogram(df_filtrado, x='Air temperature', nbins=20, title='Histograma - Temperatura do Ar',
-                    #                 color_discrete_sequence=[gear1_colors[1]]),
-                    #     use_container_width=True
-                    # )
                     st.plotly_chart(
                         px.box(df_filtrado, y='Air temperature', title='Box Plot - Temperatura do Ar',
                             color_discrete_sequence=[gear1_colors[1]]),
@@ -924,58 +884,6 @@ def main():
                 st.plotly_chart(fig_air_temp, use_container_width=True)
 
         with tab3:
-            # if 'Fuel used' in df_filtrado.columns:
-            #     # Cálculo de limites dinâmicos para o eixo Y do boxplot
-            #     fuel_used_85 = np.percentile(df_filtrado["Fuel used"].dropna(), 85)
-            #     fuel_used_15 = np.percentile(df_filtrado["Fuel used"].dropna(), 15)
-            #     fuel_used_min = df_filtrado["Fuel used"].min()
-
-            #     fig_fuel = make_subplots(
-            #         rows=2, cols=1,
-            #         shared_xaxes=False,
-            #         vertical_spacing=0.15,
-            #         row_heights=[0.5, 0.5],
-            #         subplot_titles=("Histograma do Consumo por Volta", "Boxplot de Consumo por Piloto")
-            #     )
-
-            #     # Histograma
-            #     fig_fuel.add_trace(go.Histogram(
-            #         x=df_filtrado["Fuel used"],
-            #         nbinsx=30,
-            #         marker_color=gear1_colors[0],
-            #         opacity=0.75,
-            #         name="Consumo por Volta"
-            #     ), row=1, col=1)
-
-            #     # Boxplot por piloto
-            #     fig_fuel.add_trace(go.Box(
-            #         # x=df_filtrado["Driver"],
-            #         # y=df_filtrado["Fuel used"],
-            #         x=df_filtrado["Fuel used"],
-            #         y=df_filtrado["Driver"],
-            #         boxpoints="outliers",
-            #         marker_color=gear1_colors[1],
-            #         name="Boxplot por Piloto",
-            #         orientation='h'
-            #     ), row=2, col=1)
-
-            #     fig_fuel.update_layout(
-            #         height=800,
-            #         showlegend=False
-            #     )
-
-            #     # Aplica limite de range no eixo Y do boxplot
-            #     # fig_fuel.update_yaxes(title_text="Fuel Used", row=1, col=1)
-            #     fig_fuel.update_yaxes(title_text="Fuel Used", range=[fuel_used_15 , fuel_used_85], row=2, col=1)
-            #     # fig_fuel.update_yaxes(range=[1.0, 2.5], row=2, col=1)
-
-            #     # fig_fuel.update_xaxes(title_text="Fuel Used", row=1, col=1)
-            #     # fig_fuel.update_xaxes(title_text="Piloto", row=2, col=1)
-
-            #     fig_fuel.update_xaxes(title_text="Piloto", row=1, col=1)
-            #     fig_fuel.update_xaxes(title_text="Fuel Used", row=2, col=1)
-
-            #     st.plotly_chart(fig_fuel, use_container_width=True)
 
             if 'Fuel used' in df_filtrado.columns:
             # Histograma do Consumo
@@ -1084,31 +992,6 @@ def main():
 
                 st.plotly_chart(fig_scatter, use_container_width=True)
 
-        # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
-        #     st.subheader("Voltas Limpas vs Incidentes por Piloto")
-        #     grouped = df_filtrado.groupby(['Driver', 'Clean']).size().reset_index(name='Counts')
-        #     voltas_limpas = grouped[grouped['Clean'] == 1]
-        #     voltas_com_incidentes = grouped[grouped['Clean'] == 0]
-
-        #     fig = go.Figure()
-        #     fig.add_trace(go.Bar(x=voltas_limpas['Driver'], y=voltas_limpas['Counts'], name='Voltas Limpas', marker_color='rgb(25, 128, 37)'))
-        #     fig.add_trace(go.Bar(x=voltas_com_incidentes['Driver'], y=voltas_com_incidentes['Counts'], name='Voltas com Incidente', marker_color='rgb(255, 127, 0)'))
-        #     fig.update_layout(title='Total de Voltas por Piloto', xaxis_title='Piloto', yaxis_title='Número de Voltas', barmode='stack', template='plotly_white')
-        #     st.plotly_chart(fig)
-
-        #     sequencias_df = calcular_sequencias_voltas_limpas(df_filtrado)
-        #     maiores_sequencias = sequencias_df.groupby('Driver')['Sequence_Length'].max().reset_index()
-
-        #     fig_bar = go.Figure(data=[go.Bar(x=maiores_sequencias['Driver'], y=maiores_sequencias['Sequence_Length'], marker_color='rgb(15, 114, 35)')])
-        #     fig_bar.update_layout(title='Maior Sequência de Voltas Limpas por Piloto', xaxis_title='Piloto', yaxis_title='Número de Voltas Limpas Consecutivas', template='plotly_white')
-        #     st.plotly_chart(fig_bar)
-
-        #     for driver in sequencias_df['Driver'].unique():
-        #         driver_data = sequencias_df[sequencias_df['Driver'] == driver]
-        #         fig_hist = go.Figure(data=[go.Histogram(x=driver_data['Sequence_Length'], marker_color='rgb(15, 114, 35)', opacity=0.75)])
-        #         fig_hist.update_layout(title=f'Distribuição das Sequências de Voltas Limpas - {driver}', xaxis_title='Tamanho da Sequência de Voltas Limpas', yaxis_title='Frequência', template='plotly_white')
-        #         st.plotly_chart(fig_hist)
-
         with tab2:
 
             try:
@@ -1195,21 +1078,6 @@ def main():
                     fig_pizza2.update_layout(title=f'Voltas de {piloto}')
                     st.plotly_chart(fig_pizza2, use_container_width=True)
 
-                # Agrupar por piloto e status de volta limpa/incidente
-                # grouped = final_df.groupby(['Driver', 'Clean']).size().unstack(fill_value=0) #pie
-
-                # # Iterar sobre cada piloto e criar um gráfico de pizza
-                # for driver in grouped.index:
-                #     clean_counts = grouped.loc[driver]
-
-                #     labels = ['Voltas Limpas','Voltas com Incidente']
-                #     values = [clean_counts.get(1, 0), clean_counts.get(0, 0)]
-
-                    
-                #     fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.3, pull=[0.1,0], marker_colors=gear1_colors)])
-                #     fig.update_layout(title_text=f'Análise de Voltas Limpas para {driver}')
-
-                #     st.plotly_chart(fig)
             except UnboundLocalError:
                 st.write("Sem dados a exibir.")
 
