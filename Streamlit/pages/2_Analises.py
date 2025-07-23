@@ -840,7 +840,8 @@ def main():
                 )
 
                 fig_pizza.update_layout(title='Voltas Limpas vs com Incidente')
-
+                # Exibir o gráfico no Streamlit
+                st.plotly_chart(fig_pizza)
             
 
                 # Agrupar por piloto e status de volta limpa/incidente
