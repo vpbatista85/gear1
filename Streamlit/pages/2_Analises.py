@@ -882,34 +882,60 @@ def main():
 
                 st.plotly_chart(fig_box_vertical, use_container_width=True)
 
-                if 'Fuel used' in df_filtrado.columns and 'Lap time' in df_filtrado.columns:
+                # Garantir que o tempo de volta está em segundos
+                df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
 
-                    fig_scatter = go.Figure()
+                # Remover outliers (usando intervalo interquartil)
+                q1 = df_filtrado['Lap time (s)'].quantile(0.25)
+                q3 = df_filtrado['Lap time (s)'].quantile(0.75)
+                iqr = q3 - q1
+                filtro = (df_filtrado['Lap time (s)'] >= q1 - 1.5 * iqr) & (df_filtrado['Lap time (s)'] <= q3 + 1.5 * iqr)
+                df_filtrado_sem_outliers = df_filtrado[filtro]
 
-                    for driver in df_filtrado['Driver'].unique():
-                        df_driver = df_filtrado[df_filtrado['Driver'] == driver]
-                        fig_scatter.add_trace(go.Scatter(
-                            x=df_driver['Fuel used'],
-                            y=df_driver['Lap time'],
-                            mode='markers',
-                            name=driver,
-                            marker=dict(size=8),
-                            hovertemplate=(
-                                f"<b>{driver}</b><br>"
-                                "Fuel used: %{x:.2f} L<br>"
-                                "Lap time: %{y}<extra></extra>"
-                            )
-                        ))
+                # Função para converter segundos em MM:SS.mmm
+                def format_lap_time(sec):
+                    minutes = int(sec // 60)
+                    seconds = sec % 60
+                    return f"{minutes:02}:{seconds:06.3f}"
 
-                    fig_scatter.update_layout(
-                        title="Correlação entre Consumo de Combustível e Tempo de Volta",
-                        xaxis_title="Consumo de Combustível (L)",
-                        yaxis_title="Tempo de Volta",
-                        legend_title="Piloto",
-                        margin=dict(l=40, r=40, t=60, b=40)
-                    )
+                # Criar o gráfico de dispersão
+                fig_scatter = go.Figure()
 
-                    st.plotly_chart(fig_scatter, use_container_width=True)
+                for driver in df_filtrado_sem_outliers['Driver'].unique():
+                    df_driver = df_filtrado_sem_outliers[df_filtrado_sem_outliers['Driver'] == driver]
+                    fig_scatter.add_trace(go.Scatter(
+                        x=df_driver['Fuel used'],
+                        y=df_driver['Lap time (s)'],
+                        mode='markers',
+                        name=driver,
+                        marker=dict(size=8),
+                        hovertemplate=(
+                            f"<b>{driver}</b><br>"
+                            "Fuel used: %{x:.2f} L<br>"
+                            "Lap time: %{customdata}<extra></extra>"
+                        ),
+                        customdata=[format_lap_time(x) for x in df_driver['Lap time (s)']]
+                    ))
+
+                # Ajustar layout e formato do eixo Y
+                fig_scatter.update_layout(
+                    title="Correlação entre Consumo de Combustível e Tempo de Volta",
+                    xaxis_title="Consumo de Combustível (L)",
+                    yaxis_title="Tempo de Volta (MM:SS.mmm)",
+                    legend_title="Piloto",
+                    margin=dict(l=40, r=40, t=60, b=40)
+                )
+
+                # Formatar os ticks do eixo Y para MM:SS.mmm
+                yticks = np.linspace(df_filtrado_sem_outliers['Lap time (s)'].min(),
+                                    df_filtrado_sem_outliers['Lap time (s)'].max(), 6)
+
+                fig_scatter.update_yaxes(
+                    tickvals=yticks,
+                    ticktext=[format_lap_time(v) for v in yticks]
+                )
+
+                st.plotly_chart(fig_scatter, use_container_width=True)
 
         # if 'Driver' in df_filtrado.columns and 'Clean' in df_filtrado.columns:
         #     st.subheader("Voltas Limpas vs Incidentes por Piloto")
