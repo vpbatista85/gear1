@@ -1194,59 +1194,56 @@ def main():
                 template='plotly_white'
             )
 
-            # Exibir o gráfico de barras no Streamlit
-            st.plotly_chart(fig_bar)
+            # Certifique-se de que 'Clean' é booleano
+            df_filtrado['Clean'] = df_filtrado['Clean'].astype(bool)
 
-            # Criação da coluna de duração de cada volta em segundos
+            # Nova coluna: se houve incidente
+            df_filtrado['Incidente'] = (~df_filtrado['Clean']).astype(int)  # 1 = incidente, 0 = volta limpa
+
+            # Tempo em segundos da volta
             df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
 
-            # Ordenar pelo horário de início
-            df_incidentes = df_filtrado.sort_values('Started at').reset_index(drop=True)
+            # Lista para armazenar resultados por piloto
+            lista_por_piloto = []
 
-            # Criar tempo acumulado de pilotagem em segundos
-            df_incidentes['Tempo acumulado (s)'] = df_incidentes['Lap time (s)'].cumsum()
-
-            # Converter para horas arredondando para o inteiro anterior
-            df_incidentes['Hora pilotada'] = (df_incidentes['Tempo acumulado (s)'] // 3600).astype(int)
-
-            # Criar uma coluna para "houve incidente?" (inverte a lógica de 'Clean')
-            df_incidentes['Incidente'] = ~df_incidentes['Clean']
-
-            df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
-            df_filtrado['Incidente'] = ~df_filtrado['Clean']  # True se houve incidente
-
-            # Armazenar os dados de todos os pilotos
-            lista_resultados = []
-
+            # Agrupa por piloto
             for piloto, df_piloto in df_filtrado.groupby('Driver'):
                 df_piloto = df_piloto.sort_values('Started at').reset_index(drop=True)
+                
+                # Tempo acumulado pilotado
                 df_piloto['Tempo acumulado (s)'] = df_piloto['Lap time (s)'].cumsum()
+                
+                # Hora de pilotagem (0, 1, 2...)
                 df_piloto['Hora pilotada'] = (df_piloto['Tempo acumulado (s)'] // 3600).astype(int)
 
-                # Agrupa por hora e conta incidentes
-                df_horas = df_piloto.groupby('Hora pilotada')['Incidente'].sum().reset_index()
-                df_horas['Driver'] = piloto
-                lista_resultados.append(df_horas)
+                # Contagem de incidentes por hora
+                df_agrupado = df_piloto.groupby('Hora pilotada')['Incidente'].sum().reset_index()
+                df_agrupado['Driver'] = piloto
+                lista_por_piloto.append(df_agrupado)
 
-            # Concatena os dados de todos os pilotos
-            df_incidentes_por_hora = pd.concat(lista_resultados, ignore_index=True)
+            # Junta todos os resultados
+            df_incidentes = pd.concat(lista_por_piloto, ignore_index=True)
 
-            # Gráfico de linha por piloto
-            fig = px.line(
-                df_incidentes_por_hora,
-                x='Hora pilotada',
-                y='Incidente',
-                color='Driver',
-                markers=True,
-                title="Incidentes por Hora de Pilotagem por Piloto",
+            # === Gráfico separado por piloto (facetas) ===
+            fig = px.bar(
+                df_incidentes,
+                x="Hora pilotada",
+                y="Incidente",
+                facet_col="Driver",
+                facet_col_wrap=3,
+                title="Incidentes por Hora de Pilotagem (por piloto)",
                 labels={
-                    'Hora pilotada': 'Tempo de Pilotagem (horas)',
-                    'Incidente': 'Incidentes por Hora',
-                    'Driver': 'Piloto'
+                    "Hora pilotada": "Horas pilotadas",
+                    "Incidente": "Nº de Incidentes"
                 }
             )
 
-            fig.update_layout(margin=dict(l=40, r=40, t=60, b=40))
+            fig.update_layout(
+                height=400 * ((len(df_incidentes['Driver'].unique()) + 2) // 3),  # altura dinâmica
+                showlegend=False,
+                margin=dict(l=40, r=40, t=60, b=40)
+            )
+
             st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
