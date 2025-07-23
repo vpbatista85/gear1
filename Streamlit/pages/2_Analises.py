@@ -734,7 +734,8 @@ def main():
                     x=df_filtrado["Driver"],
                     boxpoints="outliers",
                     marker_color=gear1_colors[1],
-                    orientation='v'
+                    orientation='v',
+                    boxmean='sd'
                 ))
 
                 fig_box_vertical.update_layout(
