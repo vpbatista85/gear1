@@ -824,6 +824,23 @@ def main():
                 # Exibir o gráfico no Streamlit
                 st.plotly_chart(fig)
 
+                # Totais gerais
+                total_limpas = voltas_limpas['Counts'].sum()
+                total_incidentes = voltas_com_incidentes['Counts'].sum()
+
+                # Gráfico de pizza separado
+                fig_pizza = go.Figure(
+                    data=[go.Pie(
+                        labels=['Voltas Limpas', 'Voltas com Incidente'],
+                        values=[total_limpas, total_incidentes],
+                        marker=dict(colors=[gear1_colors[0], gear1_colors[1]]),
+                        textinfo='label+percent',
+                        hole=0.4  # Estilo donut, opcional
+                    )]
+                )
+
+                fig_pizza.update_layout(title='Voltas Limpas vs com Incidente')
+
             
 
                 # Agrupar por piloto e status de volta limpa/incidente
