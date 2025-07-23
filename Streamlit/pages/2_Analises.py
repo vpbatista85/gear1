@@ -457,8 +457,8 @@ def main():
         elif tipo_analise == "Por Piloto":
             pista_sel = st.sidebar.selectbox("Escolha a Pista", sorted(final_df['Track'].dropna().unique()))
             df_filtrado = final_df[final_df['Track'] == pista_sel]
-            carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(final_df['Car'].dropna().unique()))
-            df_filtrado = final_df[final_df['Car'] == carro_sel]
+            carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(df_filtrado['Car'].dropna().unique()))
+            df_filtrado = final_df[(final_df['Car'] == carro_sel) & (final_df['Track'] == pista_sel)]
 
         #teste
         final_df=df_filtrado
