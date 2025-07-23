@@ -1194,54 +1194,47 @@ def main():
                 template='plotly_white'
             )
 
-            # Certifique-se de que 'Clean' é booleano
-            df_filtrado['Clean'] = df_filtrado['Clean'].astype(bool)
+            # Converter a coluna 'Started at' para datetime se ainda não foi feito
+            df_filtrado['Started at'] = pd.to_datetime(df_filtrado['Started at'])
 
-            # Nova coluna: se houve incidente
-            df_filtrado['Incidente'] = (~df_filtrado['Clean']).astype(int)  # 1 = incidente, 0 = volta limpa
+            # Calcular o tempo desde o início da sessão em horas
+            start_time = df_filtrado['Started at'].min()
+            df_filtrado['Tempo desde início (h)'] = (df_filtrado['Started at'] - start_time).dt.total_seconds() / 3600
 
-            # Tempo em segundos da volta
-            df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
+            # Calcular incidentes por volta (0 = incidente, 1 = limpa => 1 - Clean = incidente)
+            df_filtrado['Incidente'] = 1 - df_filtrado['Clean']
 
-            # Lista para armazenar resultados por piloto
-            lista_por_piloto = []
+            # Arredondar a hora para criar buckets
+            df_filtrado['Hora arredondada'] = df_filtrado['Tempo desde início (h)'].apply(lambda x: int(x))
 
-            # Agrupa por piloto
-            for piloto, df_piloto in df_filtrado.groupby('Driver'):
-                df_piloto = df_piloto.sort_values('Started at').reset_index(drop=True)
-                
-                # Tempo acumulado pilotado
-                df_piloto['Tempo acumulado (s)'] = df_piloto['Lap time (s)'].cumsum()
-                
-                # Hora de pilotagem (0, 1, 2...)
-                df_piloto['Hora pilotada'] = (df_piloto['Tempo acumulado (s)'] // 3600).astype(int)
+            # Agrupar por piloto e hora
+            incidentes_por_hora = df_filtrado.groupby(['Driver', 'Hora arredondada'])['Incidente'].sum().reset_index()
 
-                # Contagem de incidentes por hora
-                df_agrupado = df_piloto.groupby('Hora pilotada')['Incidente'].sum().reset_index()
-                df_agrupado['Driver'] = piloto
-                lista_por_piloto.append(df_agrupado)
+            # Obter lista de pilotos únicos
+            pilotos = incidentes_por_hora['Driver'].unique()
 
-            # Junta todos os resultados
-            df_incidentes = pd.concat(lista_por_piloto, ignore_index=True)
+            # Criar subplots com um gráfico por piloto
+            n_pilotos = len(pilotos)
+            fig = make_subplots(rows=n_pilotos, cols=1, shared_xaxes=True, subplot_titles=pilotos)
 
-            # === Gráfico separado por piloto (facetas) ===
-            fig = px.bar(
-                df_incidentes,
-                x="Hora pilotada",
-                y="Incidente",
-                facet_col="Driver",
-                facet_col_wrap=3,
-                title="Incidentes por Hora de Pilotagem (por piloto)",
-                labels={
-                    "Hora pilotada": "Horas pilotadas",
-                    "Incidente": "Nº de Incidentes"
-                }
-            )
+            for i, piloto in enumerate(pilotos):
+                dados_piloto = incidentes_por_hora[incidentes_por_hora['Driver'] == piloto]
+                fig.add_trace(
+                    go.Bar(
+                        x=dados_piloto['Hora arredondada'],
+                        y=dados_piloto['Incidente'],
+                        name=piloto,
+                        marker_color=gear1_colors[i % len(gear1_colors)]
+                    ),
+                    row=i+1, col=1
+                )
 
             fig.update_layout(
-                height=400 * ((len(df_incidentes['Driver'].unique()) + 2) // 3),  # altura dinâmica
-                showlegend=False,
-                margin=dict(l=40, r=40, t=60, b=40)
+                height=250 * n_pilotos,
+                title_text="Taxa de Incidentes por Hora Pilotada (Separado por Piloto)",
+                xaxis_title="Horas desde o início da sessão",
+                yaxis_title="Número de Incidentes por Hora",
+                showlegend=False
             )
 
             st.plotly_chart(fig, use_container_width=True)
