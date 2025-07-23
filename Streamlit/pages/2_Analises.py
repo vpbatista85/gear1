@@ -651,13 +651,13 @@ def main():
                 col2.plotly_chart(fig_air_temp, use_container_width=True)
 
             # Linha abaixo com histogramas e box plots
-            st.markdown("### Distribuições de Temperatura")
+            # st.markdown("### Distribuições de Temperatura")
 
             col3, col4 = st.columns(2)
 
             # Histogramas e Box plots
             if 'Track temp' in df_filtrado.columns:
-                st.subheader("Análise da Temperatura da Pista")
+                # st.subheader("Análise da Temperatura da Pista")
 
                 # Histograma
                 fig_hist_track = go.Figure()
@@ -689,7 +689,7 @@ def main():
                     y=df_filtrado["Track temp"],
                     x=df_filtrado["Driver"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[1],
+                    marker_color=gear1_colors[0],
                     orientation='v',
                     boxmean=True
                 ))
@@ -711,7 +711,7 @@ def main():
                 fig_hist_air.add_trace(go.Histogram(
                     x=df_filtrado["Air temperature"],
                     nbinsx=30,
-                    marker_color=gear1_colors[2],
+                    marker_color=gear1_colors[1],
                     opacity=0.75,
                     name="Temperatura do Ar"
                 ))
@@ -736,7 +736,7 @@ def main():
                     y=df_filtrado["Air temperature"],
                     x=df_filtrado["Driver"],
                     boxpoints="outliers",
-                    marker_color=gear1_colors[3],
+                    marker_color=gear1_colors[1],
                     orientation='v',
                     boxmean=True
                 ))
