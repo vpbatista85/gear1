@@ -1153,7 +1153,6 @@ def main():
 
                     fig_pizza2.update_layout(title=f'Voltas de {piloto}')
                     st.plotly_chart(fig_pizza2, use_container_width=True)
-                            
 
                 # Agrupar por piloto e status de volta limpa/incidente
                 # grouped = final_df.groupby(['Driver', 'Clean']).size().unstack(fill_value=0) #pie
@@ -1197,6 +1196,41 @@ def main():
 
             # Exibir o gráfico de barras no Streamlit
             st.plotly_chart(fig_bar)
+
+            # Criação da coluna de duração de cada volta em segundos
+            df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
+
+            # Ordenar pelo horário de início
+            df_incidentes = df_filtrado.sort_values('Started at').reset_index(drop=True)
+
+            # Criar tempo acumulado de pilotagem em segundos
+            df_incidentes['Tempo acumulado (s)'] = df_incidentes['Lap time (s)'].cumsum()
+
+            # Converter para horas arredondando para o inteiro anterior
+            df_incidentes['Hora pilotada'] = (df_incidentes['Tempo acumulado (s)'] // 3600).astype(int)
+
+            # Criar uma coluna para "houve incidente?" (inverte a lógica de 'Clean')
+            df_incidentes['Incidente'] = ~df_incidentes['Clean']
+
+            # Agrupar por hora de pilotagem e contar incidentes
+            incidentes_por_hora = df_incidentes.groupby('Hora pilotada')['Incidente'].sum().reset_index()
+            incidentes_por_hora.columns = ['Hora de Pilotagem', 'Incidentes']
+
+            # Plotar o gráfico
+            fig = px.line(
+                incidentes_por_hora,
+                x='Hora de Pilotagem',
+                y='Incidentes',
+                markers=True,
+                title="Quantidade de Incidentes por Hora de Pilotagem",
+                labels={
+                    'Hora de Pilotagem': 'Tempo de Pilotagem (horas)',
+                    'Incidentes': 'Incidentes por Hora'
+                }
+            )
+
+            fig.update_layout(margin=dict(l=40, r=40, t=60, b=40))
+            st.plotly_chart(fig, use_container_width=True)
 
 if __name__ == "__main__":
     main()
