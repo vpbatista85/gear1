@@ -785,7 +785,7 @@ def main():
                 st.plotly_chart(fig_temp, use_container_width=True)
 
             if 'Air temperature' in df_filtrado.columns:
-                st.subheader("Análise da Temperatura do Ar")
+                # st.subheader("Análise da Temperatura do Ar")
 
                 # Histograma
                 fig_hist_air = go.Figure()
