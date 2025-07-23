@@ -812,7 +812,8 @@ def main():
                     title='Total de Voltas por Piloto',
                     xaxis_title='Piloto',
                     yaxis_title='Número de Voltas',
-                    barmode='stack',  # Empilhar as barras
+                    # barmode='stack',  # Empilhar as barras
+                    barmode='group', #Lado a lado
                     template='plotly_white'  # Estilo do gráfico
                 )
 
