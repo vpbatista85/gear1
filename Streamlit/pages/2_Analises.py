@@ -842,7 +842,28 @@ def main():
                 fig_pizza.update_layout(title='Voltas Limpas vs com Incidente')
                 # Exibir o gráfico no Streamlit
                 st.plotly_chart(fig_pizza)
-            
+
+                # Criação das pizza por piloto
+                pilotos = grouped['Driver'].unique()
+
+                for piloto in pilotos:
+                    dados_piloto = grouped[grouped['Driver'] == piloto]
+
+                    # Garantir que existam as duas categorias
+                    clean_count = int(dados_piloto[dados_piloto['Clean'] == 1]['Counts'].values[0]) if 1 in dados_piloto['Clean'].values else 0
+                    incident_count = int(dados_piloto[dados_piloto['Clean'] == 0]['Counts'].values[0]) if 0 in dados_piloto['Clean'].values else 0
+
+                    fig_pizza2 = go.Figure(data=[go.Pie(
+                        labels=['Voltas Limpas', 'Voltas com Incidente'],
+                        values=[clean_count, incident_count],
+                        marker_colors=[gear1_colors[0], gear1_colors[1]],
+                        hole=0.3,
+                        textinfo='label+percent',
+                    )])
+
+                    fig_pizza2.update_layout(title=f'Voltas de {piloto}')
+                    st.plotly_chart(fig_pizza2, use_container_width=True)
+                            
 
                 # Agrupar por piloto e status de volta limpa/incidente
                 # grouped = final_df.groupby(['Driver', 'Clean']).size().unstack(fill_value=0) #pie
