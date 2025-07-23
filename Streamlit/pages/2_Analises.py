@@ -849,7 +849,7 @@ def main():
                 for driver in df_filtrado_sem_outliers['Driver'].unique():
                     df_driver = df_filtrado_sem_outliers[df_filtrado_sem_outliers['Driver'] == driver]
                     fig_air_temp.add_trace(go.Scatter(
-                        x=df_driver['Air temp'],
+                        x=df_driver['Air temperature'],
                         y=df_driver['Lap time (s)'],
                         mode='markers',
                         name=driver,
@@ -864,7 +864,7 @@ def main():
 
                 # Layout do gráfico
                 fig_air_temp.update_layout(
-                    title="Correlação entre Temperatura do Ar e Tempo de Volta",
+                    title="Temperatura do Ar vs Tempo de Volta",
                     xaxis_title="Temperatura do Ar (°C)",
                     yaxis_title="Tempo de Volta (MM:SS.mmm)",
                     legend_title="Piloto",
