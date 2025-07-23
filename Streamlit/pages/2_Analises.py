@@ -729,6 +729,61 @@ def main():
                 )
                 st.plotly_chart(fig_box_track, use_container_width=True)
 
+            # Garantir que o tempo de volta está em segundos
+                df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
+
+                # Remover outliers com base no tempo de volta
+                q1 = df_filtrado['Lap time (s)'].quantile(0.25)
+                q3 = df_filtrado['Lap time (s)'].quantile(0.75)
+                iqr = q3 - q1
+                filtro = (df_filtrado['Lap time (s)'] >= q1 - 1.5 * iqr) & (df_filtrado['Lap time (s)'] <= q3 + 1.5 * iqr)
+                df_filtrado_sem_outliers = df_filtrado[filtro]
+
+                # Função para formatar o tempo em MM:SS.mmm
+                def format_lap_time(sec):
+                    minutes = int(sec // 60)
+                    seconds = sec % 60
+                    return f"{minutes:02}:{seconds:06.3f}"
+
+                # Gráfico de dispersão: Temperatura da pista (x) vs Tempo de volta (y)
+                fig_temp = go.Figure()
+
+                for driver in df_filtrado_sem_outliers['Driver'].unique():
+                    df_driver = df_filtrado_sem_outliers[df_filtrado_sem_outliers['Driver'] == driver]
+                    fig_temp.add_trace(go.Scatter(
+                        x=df_driver['Track temp'],
+                        y=df_driver['Lap time (s)'],
+                        mode='markers',
+                        name=driver,
+                        marker=dict(size=8),
+                        hovertemplate=(
+                            f"<b>{driver}</b><br>"
+                            "Track temp: %{x}°C<br>"
+                            "Lap time: %{customdata}<extra></extra>"
+                        ),
+                        customdata=[format_lap_time(t) for t in df_driver['Lap time (s)']]
+                    ))
+
+                # Ajustar layout
+                fig_temp.update_layout(
+                    title="Correlação entre Temperatura da Pista e Tempo de Volta",
+                    xaxis_title="Temperatura da Pista (°C)",
+                    yaxis_title="Tempo de Volta (MM:SS.mmm)",
+                    legend_title="Piloto",
+                    margin=dict(l=40, r=40, t=60, b=40)
+                )
+
+                # Formatando os ticks do eixo Y (tempo de volta)
+                yticks = np.linspace(df_filtrado_sem_outliers['Lap time (s)'].min(),
+                                    df_filtrado_sem_outliers['Lap time (s)'].max(), 6)
+
+                fig_temp.update_yaxes(
+                    tickvals=yticks,
+                    ticktext=[format_lap_time(v) for v in yticks]
+                )
+
+                st.plotly_chart(fig_temp, use_container_width=True)
+
             if 'Air temperature' in df_filtrado.columns:
                 st.subheader("Análise da Temperatura do Ar")
 
@@ -919,7 +974,7 @@ def main():
 
                 # Ajustar layout e formato do eixo Y
                 fig_scatter.update_layout(
-                    title="Correlação entre Consumo de Combustível e Tempo de Volta",
+                    title="Consumo de Combustível vs Tempo de Volta",
                     xaxis_title="Consumo de Combustível (L)",
                     yaxis_title="Tempo de Volta (MM:SS.mmm)",
                     legend_title="Piloto",
