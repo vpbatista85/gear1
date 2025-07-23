@@ -638,14 +638,49 @@ def main():
         with tab4:
             # st.subheader("Temperatura ao longo do tempo")
             col1, col2 = st.columns(2)
+
+            # Gráficos de linha
             if 'Track temp' in df_filtrado.columns:
                 fig_track_temp = px.line(df_filtrado, x='Started at', y='Track temp', title='Temperatura da Pista')
-                fig_track_temp.update_traces(line_color=gear1_colors[0]) 
+                fig_track_temp.update_traces(line_color=gear1_colors[0])
                 col1.plotly_chart(fig_track_temp, use_container_width=True)
+
             if 'Air temperature' in df_filtrado.columns:
                 fig_air_temp = px.line(df_filtrado, x='Started at', y='Air temperature', title='Temperatura do Ar')
-                fig_air_temp.update_traces(line_color=gear1_colors[1]) 
+                fig_air_temp.update_traces(line_color=gear1_colors[1])
                 col2.plotly_chart(fig_air_temp, use_container_width=True)
+
+            # Linha abaixo com histogramas e box plots
+            st.markdown("### Distribuições de Temperatura")
+
+            col3, col4 = st.columns(2)
+
+            # Histogramas e Box plots
+            if 'Track temp' in df_filtrado.columns:
+                with col3:
+                    st.plotly_chart(
+                        px.histogram(df_filtrado, x='Track temp', nbins=20, title='Histograma - Temperatura da Pista',
+                                    color_discrete_sequence=[gear1_colors[0]]),
+                        use_container_width=True
+                    )
+                    st.plotly_chart(
+                        px.box(df_filtrado, y='Track temp', title='Box Plot - Temperatura da Pista',
+                            color_discrete_sequence=[gear1_colors[0]]),
+                        use_container_width=True
+                    )
+
+            if 'Air temperature' in df_filtrado.columns:
+                with col4:
+                    st.plotly_chart(
+                        px.histogram(df_filtrado, x='Air temperature', nbins=20, title='Histograma - Temperatura do Ar',
+                                    color_discrete_sequence=[gear1_colors[1]]),
+                        use_container_width=True
+                    )
+                    st.plotly_chart(
+                        px.box(df_filtrado, y='Air temperature', title='Box Plot - Temperatura do Ar',
+                            color_discrete_sequence=[gear1_colors[1]]),
+                        use_container_width=True
+                    )
 
         with tab3:
             # if 'Fuel used' in df_filtrado.columns:
