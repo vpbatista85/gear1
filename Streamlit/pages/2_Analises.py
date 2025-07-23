@@ -459,6 +459,9 @@ def main():
             carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(final_df['Car'].dropna().unique()))
             df_filtrado = final_df[(final_df['Car'] == carro_sel) & (final_df['Track'] == pista_sel)]
 
+        #teste
+        final_df=df_filtrado
+
         tab1, tab2, tab3, tab4, tab5 = st.tabs([":green[Lap Time]", ":green[Safety]", ":green[Fuel]", ":green[Temperature]",":orange[Files]"])
         # Define color sets of paintings
         gear1_colors = ['rgb(25, 128, 37)','rgb(255, 127, 0)']#verde, laranja
