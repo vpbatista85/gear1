@@ -1212,20 +1212,37 @@ def main():
             # Criar uma coluna para "houve incidente?" (inverte a lógica de 'Clean')
             df_incidentes['Incidente'] = ~df_incidentes['Clean']
 
-            # Agrupar por hora de pilotagem e contar incidentes
-            incidentes_por_hora = df_incidentes.groupby('Hora pilotada')['Incidente'].sum().reset_index()
-            incidentes_por_hora.columns = ['Hora de Pilotagem', 'Incidentes']
+            df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
+            df_filtrado['Incidente'] = ~df_filtrado['Clean']  # True se houve incidente
 
-            # Plotar o gráfico
+            # Armazenar os dados de todos os pilotos
+            lista_resultados = []
+
+            for piloto, df_piloto in df_filtrado.groupby('Driver'):
+                df_piloto = df_piloto.sort_values('Started at').reset_index(drop=True)
+                df_piloto['Tempo acumulado (s)'] = df_piloto['Lap time (s)'].cumsum()
+                df_piloto['Hora pilotada'] = (df_piloto['Tempo acumulado (s)'] // 3600).astype(int)
+
+                # Agrupa por hora e conta incidentes
+                df_horas = df_piloto.groupby('Hora pilotada')['Incidente'].sum().reset_index()
+                df_horas['Driver'] = piloto
+                lista_resultados.append(df_horas)
+
+            # Concatena os dados de todos os pilotos
+            df_incidentes_por_hora = pd.concat(lista_resultados, ignore_index=True)
+
+            # Gráfico de linha por piloto
             fig = px.line(
-                incidentes_por_hora,
-                x='Hora de Pilotagem',
-                y='Incidentes',
+                df_incidentes_por_hora,
+                x='Hora pilotada',
+                y='Incidente',
+                color='Driver',
                 markers=True,
-                title="Quantidade de Incidentes por Hora de Pilotagem",
+                title="Incidentes por Hora de Pilotagem por Piloto",
                 labels={
-                    'Hora de Pilotagem': 'Tempo de Pilotagem (horas)',
-                    'Incidentes': 'Incidentes por Hora'
+                    'Hora pilotada': 'Tempo de Pilotagem (horas)',
+                    'Incidente': 'Incidentes por Hora',
+                    'Driver': 'Piloto'
                 }
             )
 
