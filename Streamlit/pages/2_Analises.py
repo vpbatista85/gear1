@@ -440,7 +440,7 @@ def main():
 
         # Etapa 3: Seleção via multiselect
         sheet_options = final_df['SheetName'].unique().tolist()
-        selected_sheets = st.multiselect("Selecionar stints (SheetName)", options=sheet_options, default=sheet_options)
+        selected_sheets = st.sidebar.multiselect("Selecionar as Sessões", options=sheet_options, default=sheet_options)
 
         # Etapa 4: Filtrar o DataFrame com base na seleção
         final_df = final_df[final_df['SheetName'].isin(selected_sheets)]
