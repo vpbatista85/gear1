@@ -525,7 +525,7 @@ def main():
                             values="Voltas",
                             title=f"Distribuição de Voltas - {carro}",
                         )
-                        fig.update_traces(textinfo='percent+label')
+                        fig.update_traces(textinfo='percent')
                         fig.update_layout(height=300)
                         st.plotly_chart(fig, use_container_width=True)
 
