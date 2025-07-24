@@ -496,7 +496,7 @@ def main():
         cutoff = st.sidebar.slider("Corte mínimo de voltas por piloto:", 0, 50, 0, step=5)
 
         if modo_balanceamento == "Balanceado":
-            filtered_df = balancear_dataset_por_carro(filtered_df, criterio=criterio, cutoff=cutoff)
+            df_filtrado  = balancear_dataset_por_carro(df_filtrado , criterio=criterio, cutoff=cutoff)
 
         #teste
         final_df=df_filtrado
