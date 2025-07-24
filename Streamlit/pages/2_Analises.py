@@ -1115,6 +1115,9 @@ def main():
 
                     #Voltas por tanque   
                     # Garantir ordem correta
+
+                    # Exemplo: tipo_analise = st.selectbox("Tipo de análise", ["Por Carro", "Por Piloto"])
+
                     df_fuel_sorted = df_filtrado.sort_values(by=["Driver", "Car", "Lap"])
 
                     # Calcular consumo por volta (diferencial invertido do nível de combustível)
@@ -1132,6 +1135,12 @@ def main():
                     fuel_max = Q3 + 1.5 * IQR
 
                     df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel used"] >= fuel_min) & (df_fuel_clean["Fuel used"] <= fuel_max)]
+
+                    if tipo_analise == "Por Piloto":
+                        df_fuel_filtered["Label"] = df_fuel_filtered["Driver"]
+                    else:
+                        df_fuel_filtered["Label"] = df_fuel_filtered["Car"]
+
 
                     # Obter capacidade do tanque (máximo Fuel Level quando Lap == 0), por Carro
                     tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel level"].max()
@@ -1155,7 +1164,7 @@ def main():
                         labels={"Estimated_Laps": "Voltas por Tanque"},
                         color="Car"
                     )
-                    fig.update_layout(xaxis_title="Carro", yaxis_title="Voltas Estimadas por Tanque")
+                    fig.update_layout(xaxis_title="Piloto" if tipo_analise == "Por Piloto" else "Carro", yaxis_title="Voltas Estimadas por Tanque")
                     st.plotly_chart(fig, use_container_width=True)
 
 
