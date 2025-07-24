@@ -1164,7 +1164,6 @@ def main():
                         title="Distribuição Estimada de Voltas por Tanque",
                         labels={"Estimated_Laps": "Voltas por Tanque", "Label": "Piloto" if tipo_analise == "Por Piloto" else "Carro"},
                         color="Label",
-                        boxmean=True
                     )
                     fig.update_layout(xaxis_title="Piloto" if tipo_analise == "Por Piloto" else "Carro", yaxis_title="Voltas Estimadas por Tanque")
                     st.plotly_chart(fig, use_container_width=True)
