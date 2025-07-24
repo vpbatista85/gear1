@@ -543,7 +543,7 @@ def main():
                 category_orders={'Run': sorted(stint_counts['Run'].unique(), key=lambda x: int(x))},
                 title='Quantidade de Voltas por Stint (Run) por Piloto'
             )
-            fig.update_layout(xaxis_title='Stint (Run)', yaxis_title='Quantidade de Voltas', height=500)
+            fig.update_layout(xaxis_title='Stint (Run)', yaxis_title='Quantidade de Voltas', height=300)
             st.plotly_chart(fig, use_container_width=True)
 
             #### Gráficos principais: Histograma e Boxplot ####
