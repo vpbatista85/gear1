@@ -1118,8 +1118,8 @@ def main():
                     tank_capacity_df.rename(columns={"Fuel level": "Tank Capacity"}, inplace=True)
 
                     # Obtemos a média de consumo por volta por piloto-carro
-                    avg_consumo_df = df_filtrado.groupby(["Car", "Driver"], as_index=False)["Fuel per Lap"].mean()
-                    avg_consumo_df.rename(columns={"Fuel per Lap": "Avg Fuel per Lap"}, inplace=True)
+                    avg_consumo_df = df_filtrado.groupby(["Car", "Driver"], as_index=False)["Fuel used"].mean()
+                    avg_consumo_df.rename(columns={"Fuel used": "Avg Fuel per Lap"}, inplace=True)
 
                     # Mescla os dois
                     df_combined = pd.merge(tank_capacity_df, avg_consumo_df, on=["Car", "Driver"])
