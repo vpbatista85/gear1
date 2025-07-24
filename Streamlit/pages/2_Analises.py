@@ -500,6 +500,27 @@ def main():
             drivers = filtered_df["Driver"].unique()
             cars = filtered_df["Car"].unique()
 
+            # Agrupa as voltas por Carro e Piloto
+            voltas_por_piloto_carro = (
+                filtered_df.groupby(["Car", "Driver"])
+                .size()
+                .reset_index(name="Voltas")
+            )
+
+            # Gráfico de pizza com facetado por carro
+            fig_pizza = px.pie(
+                voltas_por_piloto_carro,
+                names="Driver",
+                values="Voltas",
+                facet_col="Car",
+                title="Distribuição de Voltas por Piloto para Cada Carro"
+            )
+
+            fig_pizza.update_traces(textinfo='percent+label')
+            fig_pizza.update_layout(showlegend=True)
+            st.plotly_chart(fig_pizza, use_container_width=True)
+
+
             #### Gráfico de stints ###
             df_valid = df_filtrado.dropna(subset=['Run', 'Driver'])
             stint_counts = df_valid.groupby(['Driver', 'Run']).size().reset_index(name='Voltas')
