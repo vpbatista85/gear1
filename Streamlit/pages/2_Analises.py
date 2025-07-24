@@ -1114,7 +1114,7 @@ def main():
                     st.plotly_chart(fig_scatter, use_container_width=True)
 
                     # Garantir que os dados estejam ordenados corretamente
-                    df_fuel_sorted = df_fuel.sort_values(by=["Driver", "Car", "Lap"])
+                    df_fuel_sorted = df_filtrado.sort_values(by=["Driver", "Car", "Lap"])
 
                     # Calcular consumo por volta (diferencial do Fuel Level, invertido)
                     df_fuel_sorted["Fuel_Used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel Level"].diff(-1)
