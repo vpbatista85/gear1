@@ -413,25 +413,32 @@ def extrair_info_overview(xls):
     carro, pista = detectar_carro_pista(df_overview)
     return carro, pista
 
-def balancear_dataset_por_carro(df):
-    # Lista para armazenar os dados balanceados
+def balancear_dataset_por_carro(df, criterio="min", cutoff=0):
     dados_balanceados = []
 
-    # Itera por cada carro
     for carro, grupo_carro in df.groupby("Car"):
-        # Conta quantas voltas cada piloto fez com este carro
         voltas_por_piloto = grupo_carro["Driver"].value_counts()
 
-        # Define o número mínimo de voltas entre os pilotos deste carro
-        min_voltas = voltas_por_piloto.min()
+        # Aplica o cutoff
+        pilotos_validos = voltas_por_piloto[voltas_por_piloto >= cutoff]
 
-        # Para cada piloto do carro, pega apenas min_voltas aleatórias
-        for piloto, _ in voltas_por_piloto.items():
+        # Se não houver pilotos suficientes, ignora esse carro
+        if len(pilotos_validos) < 2:
+            continue
+
+        # Define limite com base no critério
+        if criterio == "min":
+            limite = pilotos_validos.min()
+        elif criterio == "mediana":
+            limite = int(pilotos_validos.median())
+        else:
+            raise ValueError("Critério inválido. Use 'min' ou 'mediana'.")
+
+        for piloto in pilotos_validos.index:
             grupo_piloto = grupo_carro[grupo_carro["Driver"] == piloto]
-            grupo_amostrado = grupo_piloto.sample(n=min_voltas, random_state=42)
+            grupo_amostrado = grupo_piloto.sample(n=limite, random_state=42)
             dados_balanceados.append(grupo_amostrado)
 
-    # Concatena todos os dados amostrados
     return pd.concat(dados_balanceados, ignore_index=True)
 
 def main():
@@ -485,8 +492,11 @@ def main():
 
         modo_balanceamento = st.sidebar.radio("Modo de Dados:", ["Desbalanceado", "Balanceado"])
 
+        criterio = st.sidebar.selectbox("Critério de Balanceamento:", ["min", "mediana"])
+        cutoff = st.sidebar.slider("Corte mínimo de voltas por piloto:", 0, 50, 0, step=5)
+
         if modo_balanceamento == "Balanceado":
-            df_filtrado = balancear_dataset_por_carro(df_filtrado)
+            filtered_df = balancear_dataset_por_carro(filtered_df, criterio=criterio, cutoff=cutoff)
 
         #teste
         final_df=df_filtrado
