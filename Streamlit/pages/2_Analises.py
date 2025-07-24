@@ -436,7 +436,7 @@ def balancear_dataset_por_carro(df, criterio="min", cutoff=0):
 
         for piloto in pilotos_validos.index:
             grupo_piloto = grupo_carro[grupo_carro["Driver"] == piloto]
-            grupo_amostrado = grupo_piloto.sample(n=limite, random_state=42)
+            grupo_amostrado = grupo_piloto.sample(n=limite, random_state=42,replace=True)
             dados_balanceados.append(grupo_amostrado)
 
     return pd.concat(dados_balanceados, ignore_index=True)
