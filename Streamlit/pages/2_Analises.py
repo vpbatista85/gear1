@@ -501,6 +501,25 @@ def main():
             drivers = filtered_df["Driver"].unique()
             cars = filtered_df["Car"].unique()
 
+            # Agrupar por Carro e contar o número de voltas - Primeiro Grafico de pizza
+            voltas_por_carro = filtered_df.groupby("Car").size().reset_index(name="Voltas")
+
+            # Criar o gráfico de pizza
+            fig_pizza_carro = px.pie(
+                voltas_por_carro,
+                names="Car",
+                values="Voltas",
+                title="Distribuição de Voltas por Carro",
+                hole=0.4  # opcional: transforma em gráfico de rosca
+            )
+
+            # Exibir apenas o percentual
+            fig_pizza_carro.update_traces(textinfo='percent')
+
+            # Mostrar o gráfico
+            st.plotly_chart(fig_pizza_carro, use_container_width=True)
+
+
             # Agrupa as voltas por Carro e Piloto
             voltas_por_piloto_carro = (
                 filtered_df.groupby(["Car", "Driver"])
