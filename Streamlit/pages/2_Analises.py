@@ -428,14 +428,14 @@ def balancear_dataset(df, metodo):
             min_voltas = df_carro.groupby('Driver').size().min()
             for piloto in pilotos:
                 df_piloto = df_carro[df_carro['Driver'] == piloto]
-                df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=min_voltas, replace=False)], ignore_index=True)
+                df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=min_voltas, replace=False,random_state=42)], ignore_index=True)
 
         elif metodo == "Mediana":
             median_voltas = int(df_carro.groupby('Driver').size().median())
             for piloto in pilotos:
                 df_piloto = df_carro[df_carro['Driver'] == piloto]
                 if len(df_piloto) >= median_voltas:
-                    df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=median_voltas, replace=False)], ignore_index=True)
+                    df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=median_voltas, replace=False,random_state=42)], ignore_index=True)
                 else:
                     df_balanceado = pd.concat([df_balanceado, df_piloto], ignore_index=True)
 
@@ -443,7 +443,7 @@ def balancear_dataset(df, metodo):
             min_voltas = df_carro.groupby('Driver').size().min()
             for piloto in pilotos:
                 df_piloto = df_carro[df_carro['Driver'] == piloto]
-                df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=min_voltas, replace=False)], ignore_index=True)
+                df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=min_voltas, replace=False,random_state=42)], ignore_index=True)
 
     return df_balanceado
 
