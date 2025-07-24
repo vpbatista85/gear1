@@ -413,14 +413,6 @@ def extrair_info_overview(xls):
     carro, pista = detectar_carro_pista(df_overview)
     return carro, pista
 
-# Remover outliers por Carro usando IQR
-def remove_outliers_iqr(group):
-    Q1 = group["Fuel used"].quantile(0.25)
-    Q3 = group["Fuel used"].quantile(0.75)
-    IQR = Q3 - Q1
-    return group[(group["Fuel used"] >= Q1 - 1.5 * IQR) & (group["Fuel used"] <= Q3 + 1.5 * IQR)]
-
-
 def balancear_dataset(df, metodo):
     if metodo == "Sem balanceamento":
         return df
@@ -1130,6 +1122,13 @@ def main():
 
                     # Remover voltas incompletas (última volta e lap 0)
                     df_fuel_clean = df_fuel_clean[df_fuel_clean["Lap"] > 0]
+
+                    # Remover outliers por Carro usando IQR
+                    def remove_outliers_iqr(group):
+                        Q1 = group["Fuel used"].quantile(0.25)
+                        Q3 = group["Fuel used"].quantile(0.75)
+                        IQR = Q3 - Q1
+                        return group[(group["Fuel used"] >= Q1 - 1.5 * IQR) & (group["Fuel used"] <= Q3 + 1.5 * IQR)]
 
                     df_fuel_filtered = df_fuel_clean.groupby("Car", group_keys=False).apply(remove_outliers_iqr)
 
