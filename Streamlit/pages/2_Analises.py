@@ -534,6 +534,8 @@ def main():
                             names="Driver",
                             values="Voltas",
                             title=f"Distribuição de Voltas - {carro}",
+                            color="Driver",  # Usa a cor mapeada
+                            color_discrete_map=mapa_cores,
                         )
                         fig.update_traces(textinfo='percent')
                         fig.update_layout(height=300)
