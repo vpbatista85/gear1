@@ -413,6 +413,14 @@ def extrair_info_overview(xls):
     carro, pista = detectar_carro_pista(df_overview)
     return carro, pista
 
+# Remover outliers por Carro usando IQR
+def remove_outliers_iqr(group):
+    Q1 = group["Fuel used"].quantile(0.25)
+    Q3 = group["Fuel used"].quantile(0.75)
+    IQR = Q3 - Q1
+    return group[(group["Fuel used"] >= Q1 - 1.5 * IQR) & (group["Fuel used"] <= Q3 + 1.5 * IQR)]
+
+
 def balancear_dataset(df, metodo):
     if metodo == "Sem balanceamento":
         return df
@@ -1115,47 +1123,53 @@ def main():
 
                     #Voltas por tanque   
                     # Garantir ordem correta
+                    # Ordenar e calcular consumo por volta
                     df_fuel_sorted = df_filtrado.sort_values(by=["Driver", "Car", "Lap"])
-
-                    # Calcular consumo por volta (diferencial invertido do nível de combustível)
                     df_fuel_sorted["Fuel used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel level"].diff(-1)
-
-                    # Filtrar valores inválidos
                     df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel used"])
-                    df_fuel_clean = df_fuel_clean[(df_fuel_clean["Fuel used"] > 0.1)]  # descartar valores baixos
 
-                    # Remover outliers usando IQR
-                    Q1 = df_fuel_clean["Fuel used"].quantile(0.25)
-                    Q3 = df_fuel_clean["Fuel used"].quantile(0.75)
-                    IQR = Q3 - Q1
-                    fuel_min = Q1 - 1.5 * IQR
-                    fuel_max = Q3 + 1.5 * IQR
+                    # Remover voltas incompletas (última volta e lap 0)
+                    df_fuel_clean = df_fuel_clean[df_fuel_clean["Lap"] > 0]
 
-                    df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel used"] >= fuel_min) & (df_fuel_clean["Fuel used"] <= fuel_max)]
+                    df_fuel_filtered = df_fuel_clean.groupby("Car", group_keys=False).apply(remove_outliers_iqr)
 
-                    # Obter capacidade do tanque (máximo Fuel Level quando Lap == 0), por Carro
+                    # Capacidade do tanque (maior valor de Fuel Level com Lap == 0)
                     tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel level"].max()
 
-                    # Mapear capacidade do tanque para cada linha
+                    # Mapear capacidade para cada linha
                     df_fuel_filtered["Tank_Capacity"] = df_fuel_filtered["Car"].map(tank_capacity)
 
-                    # Estimar voltas por tanque
-                    df_fuel_filtered["Estimated_Laps"] = df_fuel_filtered["Tank_Capacity"] / df_fuel_filtered["Fuel used"]
+                    # Agrupar por carro e calcular consumo min/max
+                    consumption_range = df_fuel_filtered.groupby("Car")["Fuel used"].agg(["min", "max"]).reset_index()
+                    consumption_range["Tank_Capacity"] = consumption_range["Car"].map(tank_capacity)
+                    consumption_range["Max_Laps"] = consumption_range["Tank_Capacity"] / consumption_range["min"]
+                    consumption_range["Min_Laps"] = consumption_range["Tank_Capacity"] / consumption_range["max"]
 
-                    # Remover valores absurdos (só por segurança, ex: > 100)
-                    df_fuel_filtered = df_fuel_filtered[df_fuel_filtered["Estimated_Laps"] < 100]
+                    # Gráfico de barras: intervalo entre Min_Laps e Max_Laps
+                    import plotly.graph_objects as go
 
-                    # Criar gráfico
-                    fig = px.box(
-                        df_fuel_filtered,
-                        x="Car",
-                        y="Estimated_Laps",
-                        points="outliers",
-                        title="Distribuição Estimada de Voltas por Tanque",
-                        labels={"Estimated_Laps": "Voltas por Tanque"},
-                        color="Car"
+                    fig = go.Figure()
+
+                    fig.add_trace(go.Bar(
+                        x=consumption_range["Car"],
+                        y=consumption_range["Max_Laps"] - consumption_range["Min_Laps"],
+                        base=consumption_range["Min_Laps"],
+                        name="Intervalo de Voltas por Tanque",
+                        marker_color="lightskyblue",
+                        hovertemplate=(
+                            "Carro: %{x}<br>" +
+                            "Mínimo: %{base:.2f} voltas<br>" +
+                            "Máximo: %{y:.2f} voltas"
+                        )
+                    ))
+
+                    fig.update_layout(
+                        title="Intervalo Estimado de Voltas por Tanque (sem outliers)",
+                        xaxis_title="Carro",
+                        yaxis_title="Voltas por Tanque",
+                        bargap=0.3
                     )
-                    fig.update_layout(xaxis_title="Carro", yaxis_title="Voltas Estimadas por Tanque")
+
                     st.plotly_chart(fig, use_container_width=True)
 
 
