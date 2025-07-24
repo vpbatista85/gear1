@@ -644,6 +644,7 @@ def main():
                     title="Tempo de Volta (MM:SS.mmm)"
                 ),
                 height=500,
+                grid_xgap=0.5
             )
 
             st.plotly_chart(fig_combo, use_container_width=True)
