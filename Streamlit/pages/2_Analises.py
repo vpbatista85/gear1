@@ -1114,15 +1114,15 @@ def main():
                     st.plotly_chart(fig_scatter, use_container_width=True)
 
                     #Voltas por tanque   
-                    # Garantir que os dados estejam ordenados corretamente
+                    # Garantir ordem correta
                     df_fuel_sorted = df_filtrado.sort_values(by=["Driver", "Car", "Lap"])
 
-                    # Calcular consumo por volta (diferencial do Fuel Level, invertido)
+                    # Calcular consumo por volta (diferencial invertido do nível de combustível)
                     df_fuel_sorted["Fuel used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel level"].diff(-1)
-                    df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel used"])
 
-                    # Remover valores negativos e muito pequenos (ex: < 0.05 L)
-                    df_fuel_clean = df_fuel_clean[df_fuel_clean["Fuel used"] > 0.05]
+                    # Filtrar valores inválidos
+                    df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel used"])
+                    df_fuel_clean = df_fuel_clean[(df_fuel_clean["Fuel used"] > 0.1)]  # descartar valores baixos
 
                     # Remover outliers usando IQR
                     Q1 = df_fuel_clean["Fuel used"].quantile(0.25)
@@ -1133,29 +1133,28 @@ def main():
 
                     df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel used"] >= fuel_min) & (df_fuel_clean["Fuel used"] <= fuel_max)]
 
-                    # Obter capacidade do tanque (maior valor de Fuel Level quando Lap == 0), por Carro
+                    # Obter capacidade do tanque (máximo Fuel Level quando Lap == 0), por Carro
                     tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel level"].max()
 
-                    # Mapear a capacidade do tanque para cada linha
+                    # Mapear capacidade do tanque para cada linha
                     df_fuel_filtered["Tank_Capacity"] = df_fuel_filtered["Car"].map(tank_capacity)
 
                     # Estimar voltas por tanque
                     df_fuel_filtered["Estimated_Laps"] = df_fuel_filtered["Tank_Capacity"] / df_fuel_filtered["Fuel used"]
 
-                    # Remover valores absurdos (por exemplo, > 50 voltas por tanque, ajustável)
-                    df_fuel_filtered = df_fuel_filtered[df_fuel_filtered["Estimated_Laps"] <= 50]
+                    # Remover valores absurdos (só por segurança, ex: > 100)
+                    df_fuel_filtered = df_fuel_filtered[df_fuel_filtered["Estimated_Laps"] < 100]
 
-                    # Criar gráfico de boxplot por carro
+                    # Criar gráfico
                     fig = px.box(
                         df_fuel_filtered,
                         x="Car",
                         y="Estimated_Laps",
                         points="outliers",
-                        title="Distribuição de Voltas Estimadas por Tanque",
+                        title="Distribuição Estimada de Voltas por Tanque",
                         labels={"Estimated_Laps": "Voltas por Tanque"},
                         color="Car"
                     )
-
                     fig.update_layout(xaxis_title="Carro", yaxis_title="Voltas Estimadas por Tanque")
                     st.plotly_chart(fig, use_container_width=True)
 
