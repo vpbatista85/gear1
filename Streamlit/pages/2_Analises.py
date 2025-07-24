@@ -1113,6 +1113,38 @@ def main():
 
                     st.plotly_chart(fig_scatter, use_container_width=True)
 
+                    # Obtemos o volume do tanque por piloto-carro a partir da volta 0
+                    tank_capacity_df = df_filtrado[df_filtrado["Lap"] == 0].groupby(["Car", "Driver"], as_index=False)["Fuel Level"].max()
+                    tank_capacity_df.rename(columns={"Fuel Level": "Tank Capacity"}, inplace=True)
+
+                    # Obtemos a média de consumo por volta por piloto-carro
+                    avg_consumo_df = df_filtrado.groupby(["Car", "Driver"], as_index=False)["Fuel per Lap"].mean()
+                    avg_consumo_df.rename(columns={"Fuel per Lap": "Avg Fuel per Lap"}, inplace=True)
+
+                    # Mescla os dois
+                    df_combined = pd.merge(tank_capacity_df, avg_consumo_df, on=["Car", "Driver"])
+
+                    # Calcula voltas por tanque
+                    df_combined["Voltas por Tanque"] = df_combined["Tank Capacity"] / df_combined["Avg Fuel per Lap"]
+
+                    # Escolhe agrupamento conforme seleção
+                    if tipo_analise == "Por Piloto":
+                        eixo_x = "Driver"
+                    elif tipo_analise == "Por Carro":
+                        eixo_x = "Car"
+
+                    # Cria boxplot
+                    fig = px.box(
+                        df_combined,
+                        x=eixo_x,
+                        y="Voltas por Tanque",
+                        title="Distribuição de Voltas por Tanque",
+                        points="all",  # Mostra os pontos individuais
+                        template="plotly_white"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
         with tab2:
 
             try:
