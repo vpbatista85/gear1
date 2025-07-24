@@ -554,7 +554,8 @@ def main():
                 color='Driver',
                 barmode='group',
                 category_orders={'Run': sorted(stint_counts['Run'].unique(), key=lambda x: int(x))},
-                title='Quantidade de Voltas por Stint (Run) por Piloto'
+                title='Quantidade de Voltas por Stint (Run) por Piloto',
+                color_discrete_map=mapa_cores,
             )
             fig.update_layout(xaxis_title='Stint (Run)', yaxis_title='Quantidade de Voltas', height=350)
             st.plotly_chart(fig, use_container_width=True)
@@ -625,7 +626,8 @@ def main():
                 color="Driver",
                 facet_col="Car",
                 nbins=num_bins,
-                title="Histograma de Tempo de Volta por Piloto e Carro"
+                title="Histograma de Tempo de Volta por Piloto e Carro",
+                color_discrete_map=mapa_cores,
             )
             # Geração dos ticks formatados
             min_lap_time = filtered_df["Lap time"].dt.total_seconds().min()
