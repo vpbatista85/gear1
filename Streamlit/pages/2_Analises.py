@@ -472,7 +472,7 @@ def main():
 
         # Etapa 2: Concatenar os dados
         final_df = pd.concat(all_dfs, ignore_index=True)
-        final_df_c=final_df
+        final_df_c=final_df.copy()
 
         # Etapa 3: Seleção via multiselect
         sheet_options = final_df['SheetName'].unique().tolist()
