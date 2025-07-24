@@ -1114,8 +1114,8 @@ def main():
                     st.plotly_chart(fig_scatter, use_container_width=True)
 
                     # Obtemos o volume do tanque por piloto-carro a partir da volta 0
-                    tank_capacity_df = df_filtrado[df_filtrado["Lap"] == 0].groupby(["Car", "Driver"], as_index=False)["Fuel Level"].max()
-                    tank_capacity_df.rename(columns={"Fuel Level": "Tank Capacity"}, inplace=True)
+                    tank_capacity_df = df_filtrado[df_filtrado["Lap"] == 0].groupby(["Car", "Driver"], as_index=False)["Fuel level"].max()
+                    tank_capacity_df.rename(columns={"Fuel level": "Tank Capacity"}, inplace=True)
 
                     # Obtemos a média de consumo por volta por piloto-carro
                     avg_consumo_df = df_filtrado.groupby(["Car", "Driver"], as_index=False)["Fuel per Lap"].mean()
