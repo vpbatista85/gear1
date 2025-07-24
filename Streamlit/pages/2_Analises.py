@@ -511,7 +511,7 @@ def main():
             carros_unicos = voltas_por_piloto_carro["Car"].unique()
 
             # Número de colunas por linha (ajuste conforme desejar)
-            colunas_por_linha = 2
+            colunas_por_linha = 4
 
             # Divide os carros em grupos para exibição por linha
             for i in range(0, len(carros_unicos), colunas_por_linha):
