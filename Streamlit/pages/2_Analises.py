@@ -629,20 +629,25 @@ def main():
                 title="Histograma de Tempo de Volta por Piloto e Carro",
                 color_discrete_map=mapa_cores,
             )
+
             # Geração dos ticks formatados
             min_lap_time = filtered_df["Lap time"].dt.total_seconds().min()
             max_lap_time = filtered_df["Lap time"].dt.total_seconds().max()
             tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
             tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
 
-            # Atualização dos eixos x com os ticks personalizados
+            # Aplica os ticks formatados a todos os eixos X
+            for axis in fig_combo.layout:
+                if axis.startswith("xaxis"):
+                    fig_combo.layout[axis].update(
+                        tickmode='array',
+                        tickvals=tick_vals,
+                        ticktext=tick_texts,
+                        title="Tempo de Volta (MM:SS.mmm)"
+                    )
+
+            # Altura e espaçamento
             fig_combo.update_layout(
-                xaxis=dict(
-                    tickmode='array',
-                    tickvals=tick_vals,
-                    ticktext=tick_texts,
-                    title="Tempo de Volta (MM:SS.mmm)"
-                ),
                 height=500,
                 grid_xgap=0.5
             )
