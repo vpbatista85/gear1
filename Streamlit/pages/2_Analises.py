@@ -413,33 +413,39 @@ def extrair_info_overview(xls):
     carro, pista = detectar_carro_pista(df_overview)
     return carro, pista
 
-def balancear_dataset_por_carro(df, criterio="min", cutoff=0):
-    dados_balanceados = []
+def balancear_dataset(df, metodo):
+    if metodo == "Sem balanceamento":
+        return df
 
-    for carro, grupo_carro in df.groupby("Car"):
-        voltas_por_piloto = grupo_carro["Driver"].value_counts()
+    df_balanceado = pd.DataFrame()
 
-        # Aplica o cutoff
-        pilotos_validos = voltas_por_piloto[voltas_por_piloto >= cutoff]
+    for carro in df['Car'].unique():
+        df_carro = df[df['Car'] == carro]
+        pilotos = df_carro['Driver'].unique()
 
-        # Se não houver pilotos suficientes, ignora esse carro
-        if len(pilotos_validos) < 2:
-            continue
+        if metodo == "Uniforme (baseado no menor número de voltas por piloto)":
+            # encontra o número mínimo de voltas entre os pilotos desse carro
+            min_voltas = df_carro.groupby('Driver').size().min()
+            for piloto in pilotos:
+                df_piloto = df_carro[df_carro['Driver'] == piloto]
+                df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=min_voltas, replace=False)], ignore_index=True)
 
-        # Define limite com base no critério
-        if criterio == "min":
-            limite = pilotos_validos.min()
-        elif criterio == "mediana":
-            limite = int(pilotos_validos.median())
-        else:
-            raise ValueError("Critério inválido. Use 'min' ou 'mediana'.")
+        elif metodo == "Mediana":
+            median_voltas = int(df_carro.groupby('Driver').size().median())
+            for piloto in pilotos:
+                df_piloto = df_carro[df_carro['Driver'] == piloto]
+                if len(df_piloto) >= median_voltas:
+                    df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=median_voltas, replace=False)], ignore_index=True)
+                else:
+                    df_balanceado = pd.concat([df_balanceado, df_piloto], ignore_index=True)
 
-        for piloto in pilotos_validos.index:
-            grupo_piloto = grupo_carro[grupo_carro["Driver"] == piloto]
-            grupo_amostrado = grupo_piloto.sample(n=limite, random_state=42,replace=True)
-            dados_balanceados.append(grupo_amostrado)
+        elif metodo == "Mínimo":
+            min_voltas = df_carro.groupby('Driver').size().min()
+            for piloto in pilotos:
+                df_piloto = df_carro[df_carro['Driver'] == piloto]
+                df_balanceado = pd.concat([df_balanceado, df_piloto.sample(n=min_voltas, replace=False)], ignore_index=True)
 
-    return pd.concat(dados_balanceados, ignore_index=True)
+    return df_balanceado
 
 def main():
     st.set_page_config(page_title="Gear 1 Post Race", page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", layout="wide")
@@ -490,13 +496,19 @@ def main():
             carro_sel = st.sidebar.selectbox("Escolha o Carro", sorted(df_filtrado['Car'].dropna().unique()))
             df_filtrado = final_df[(final_df['Car'] == carro_sel) & (final_df['Track'] == pista_sel)]
 
-        modo_balanceamento = st.sidebar.radio("Modo de Dados:", ["Desbalanceado", "Balanceado"])
+        balanceamento_opcao = st.sidebar.selectbox(
+            "Tipo de Balanceamento",
+            ["Sem balanceamento", 
+            "Uniforme (baseado no menor número de voltas por piloto)", 
+            "Mediana", 
+            "Mínimo"]
+        )
 
-        criterio = st.sidebar.selectbox("Critério de Balanceamento:", ["min", "mediana"])
-        cutoff = st.sidebar.slider("Corte mínimo de voltas por piloto:", 0, 50, 0, step=5)
+        # criterio = st.sidebar.selectbox("Critério de Balanceamento:", ["min", "mediana"])
+        # cutoff = st.sidebar.slider("Corte mínimo de voltas por piloto:", 0, 50, 0, step=5)
 
-        if modo_balanceamento == "Balanceado":
-            df_filtrado  = balancear_dataset_por_carro(df_filtrado , criterio=criterio, cutoff=cutoff)
+        
+        df_filtrado  = balancear_dataset(df_filtrado , balanceamento_opcao)
 
         #teste
         final_df=df_filtrado
