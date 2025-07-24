@@ -579,14 +579,32 @@ def main():
             ### Adiciona histogramas por Carro e Piloto (facetado) ###
             fig_combo = px.histogram(
                 filtered_df,
-                x=filtered_df["Lap time"].dt.total_seconds().strftime("%M:%S.%f")[:-3],
+                x=filtered_df["Lap time"].dt.total_seconds(),
                 color="Driver",
                 facet_col="Car",
                 nbins=num_bins,
                 title="Histograma de Tempo de Volta por Piloto e Carro"
             )
-            fig_combo.update_xaxes(tickformat="%M:%S.%L")
+            # Geração dos ticks formatados
+            min_lap_time = filtered_df["Lap time (s)"].min()
+            max_lap_time = filtered_df["Lap time (s)"].max()
+            tick_vals = np.arange(min_lap_time, max_lap_time + bin_width, bin_width)
+            tick_texts = [f"{int(t // 60):02}:{int(t % 60):02}.{int((t * 1000) % 1000):03}" for t in tick_vals]
+
+            # Atualização dos eixos x com os ticks personalizados
+            fig_combo.update_layout(
+                xaxis=dict(
+                    tickmode='array',
+                    tickvals=tick_vals,
+                    ticktext=tick_texts,
+                    title="Tempo de Volta (MM:SS.mmm)"
+                ),
+                height=500
+            )
+
             st.plotly_chart(fig_combo, use_container_width=True)
+
+            
 
             ### Gráficos individuais por grupo (piloto ou carro) ###
             for grupo in filtered_df[agrupador].unique():
