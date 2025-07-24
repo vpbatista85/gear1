@@ -507,6 +507,15 @@ def main():
                 .reset_index(name="Voltas")
             )
 
+            # Lista de drivers únicos
+            drivers_unicos = sorted(filtered_df["Driver"].unique())
+
+            # Gera cores distintas (usando a paleta Plotly, com repetição se necessário)
+            cores = pc.qualitative.Plotly * (len(drivers_unicos) // len(pc.qualitative.Plotly) + 1)
+
+            # Cria o dicionário com o mapeamento driver → cor
+            mapa_cores = {driver: cor for driver, cor in zip(drivers_unicos, cores)}
+
            # Lista de carros únicos
             carros_unicos = voltas_por_piloto_carro["Car"].unique()
 
