@@ -472,6 +472,7 @@ def main():
 
         # Etapa 2: Concatenar os dados
         final_df = pd.concat(all_dfs, ignore_index=True)
+        final_df_c=final_df
 
         # Etapa 3: Seleção via multiselect
         sheet_options = final_df['SheetName'].unique().tolist()
@@ -1143,7 +1144,7 @@ def main():
 
 
                     # Obter capacidade do tanque (máximo Fuel Level quando Lap == 0), por Carro
-                    tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel level"].max()
+                    tank_capacity = final_df_c[final_df_c["Lap"] == 0].groupby("Car")["Fuel level"].max()
 
                     # Mapear capacidade do tanque para cada linha
                     df_fuel_filtered["Tank_Capacity"] = df_fuel_filtered["Car"].map(tank_capacity)
