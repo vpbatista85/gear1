@@ -540,7 +540,7 @@ def main():
             )
 
             # Exibir apenas o percentual
-            fig_pizza_carro.update_traces(textinfo='percent')
+            fig_pizza_carro.update_traces(textinfo='percent+value')
 
             # Mostrar o gráfico
             st.plotly_chart(fig_pizza_carro, use_container_width=True)
