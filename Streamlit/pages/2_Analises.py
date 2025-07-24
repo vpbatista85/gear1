@@ -1113,36 +1113,43 @@ def main():
 
                     st.plotly_chart(fig_scatter, use_container_width=True)
 
-                    # Obtemos o volume do tanque por piloto-carro a partir da volta 0
-                    tank_capacity_df = df_filtrado_sem_outliers[df_filtrado_sem_outliers["Lap"] == 0].groupby(["Car", "Driver"], as_index=False)["Fuel level"].max()
-                    tank_capacity_df.rename(columns={"Fuel level": "Tank Capacity"}, inplace=True)
+                    # Garantir que os dados estejam ordenados corretamente
+                    df_fuel_sorted = df_fuel.sort_values(by=["Driver", "Car", "Lap"])
 
-                    # Obtemos a média de consumo por volta por piloto-carro
-                    avg_consumo_df = df_filtrado_sem_outliers.groupby(["Car", "Driver"], as_index=False)["Fuel used"].mean()
-                    avg_consumo_df.rename(columns={"Fuel used": "Avg Fuel per Lap"}, inplace=True)
+                    # Calcular consumo por volta (diferencial do Fuel Level, invertido)
+                    df_fuel_sorted["Fuel_Used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel Level"].diff(-1)
+                    df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel_Used"])
 
-                    # Mescla os dois
-                    df_combined = pd.merge(tank_capacity_df, avg_consumo_df, on=["Car", "Driver"])
+                    # Remover outliers usando IQR
+                    Q1 = df_fuel_clean["Fuel_Used"].quantile(0.25)
+                    Q3 = df_fuel_clean["Fuel_Used"].quantile(0.75)
+                    IQR = Q3 - Q1
+                    fuel_min = Q1 - 1.5 * IQR
+                    fuel_max = Q3 + 1.5 * IQR
 
-                    # Calcula voltas por tanque
-                    df_combined["Voltas por Tanque"] = df_combined["Tank Capacity"] / df_combined["Avg Fuel per Lap"]
+                    df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel_Used"] >= fuel_min) & (df_fuel_clean["Fuel_Used"] <= fuel_max)]
 
-                    # Escolhe agrupamento conforme seleção
-                    if tipo_analise == "Por Piloto":
-                        eixo_x = "Driver"
-                    elif tipo_analise == "Por Carro":
-                        eixo_x = "Car"
+                    # Obter capacidade do tanque (maior valor de Fuel Level quando Lap == 0), por Carro
+                    tank_capacity = df_filtrado[df_filtradoS["Lap"] == 0].groupby("Car")["Fuel Level"].max()
 
-                    # Cria boxplot
+                    # Mapear a capacidade do tanque para cada linha
+                    df_fuel_filtered["Tank_Capacity"] = df_fuel_filtered["Car"].map(tank_capacity)
+
+                    # Estimar voltas por tanque
+                    df_fuel_filtered["Estimated_Laps"] = df_fuel_filtered["Tank_Capacity"] / df_fuel_filtered["Fuel_Used"]
+
+                    # Criar gráfico de boxplot por carro (pode adicionar também Driver se quiser mais granularidade)
                     fig = px.box(
-                        df_combined,
-                        x=eixo_x,
-                        y="Voltas por Tanque",
-                        title="Distribuição de Voltas por Tanque",
-                        points="all",  # Mostra os pontos individuais
-                        template="plotly_white"
+                        df_fuel_filtered,
+                        x="Car",
+                        y="Estimated_Laps",
+                        points="outliers",
+                        title="Distribuição de Voltas Estimadas por Tanque",
+                        labels={"Estimated_Laps": "Voltas por Tanque"},
+                        color="Car"
                     )
 
+                    fig.update_layout(xaxis_title="Carro", yaxis_title="Voltas Estimadas por Tanque")
                     st.plotly_chart(fig, use_container_width=True)
 
         with tab2:
