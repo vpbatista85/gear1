@@ -1117,26 +1117,26 @@ def main():
                     df_fuel_sorted = df_filtrado.sort_values(by=["Driver", "Car", "Lap"])
 
                     # Calcular consumo por volta (diferencial do Fuel Level, invertido)
-                    df_fuel_sorted["Fuel_Used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel Level"].diff(-1)
-                    df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel_Used"])
+                    df_fuel_sorted["Fuel used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel level"].diff(-1)
+                    df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel used"])
 
                     # Remover outliers usando IQR
-                    Q1 = df_fuel_clean["Fuel_Used"].quantile(0.25)
-                    Q3 = df_fuel_clean["Fuel_Used"].quantile(0.75)
+                    Q1 = df_fuel_clean["Fuel used"].quantile(0.25)
+                    Q3 = df_fuel_clean["Fuel used"].quantile(0.75)
                     IQR = Q3 - Q1
                     fuel_min = Q1 - 1.5 * IQR
                     fuel_max = Q3 + 1.5 * IQR
 
-                    df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel_Used"] >= fuel_min) & (df_fuel_clean["Fuel_Used"] <= fuel_max)]
+                    df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel used"] >= fuel_min) & (df_fuel_clean["Fuel used"] <= fuel_max)]
 
                     # Obter capacidade do tanque (maior valor de Fuel Level quando Lap == 0), por Carro
-                    tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel Level"].max()
+                    tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel level"].max()
 
                     # Mapear a capacidade do tanque para cada linha
                     df_fuel_filtered["Tank_Capacity"] = df_fuel_filtered["Car"].map(tank_capacity)
 
                     # Estimar voltas por tanque
-                    df_fuel_filtered["Estimated_Laps"] = df_fuel_filtered["Tank_Capacity"] / df_fuel_filtered["Fuel_Used"]
+                    df_fuel_filtered["Estimated_Laps"] = df_fuel_filtered["Tank_Capacity"] / df_fuel_filtered["Fuel used"]
 
                     # Criar gráfico de boxplot por carro (pode adicionar também Driver se quiser mais granularidade)
                     fig = px.box(
