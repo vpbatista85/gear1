@@ -507,27 +507,26 @@ def main():
                 .reset_index(name="Voltas")
             )
 
-            # Gráfico de pizza com facetado por carro
-            fig_pizza = px.pie(
-                voltas_por_piloto_carro,
-                names="Driver",
-                values="Voltas",
-                facet_col="Car",
-                facet_col_wrap=2,  # Máximo de 2 gráficos por linha
-                title="Distribuição de Voltas por Piloto para Cada Carro"
-            )
+           # Lista de carros únicos
+            carros_unicos = voltas_por_piloto_carro["Car"].unique()
 
-            fig_pizza.update_traces(textinfo='percent+label')
-            fig_pizza.update_layout(
-                showlegend=True,
-                margin=dict(t=60, b=20),
-                uniformtext_minsize=10,
-                uniformtext_mode='hide'
-            )
+            # Número de colunas por linha (ajuste conforme desejar)
+            colunas_por_linha = 2
 
-            fig_pizza.update_layout(facet_col_spacing=0.08)  # Espaço entre os gráficos
-
-            st.plotly_chart(fig_pizza, use_container_width=True)
+            # Divide os carros em grupos para exibição por linha
+            for i in range(0, len(carros_unicos), colunas_por_linha):
+                cols = st.columns(colunas_por_linha)
+                for j, carro in enumerate(carros_unicos[i:i + colunas_por_linha]):
+                    with cols[j]:
+                        dados_carro = voltas_por_piloto_carro[voltas_por_piloto_carro["Car"] == carro]
+                        fig = px.pie(
+                            dados_carro,
+                            names="Driver",
+                            values="Voltas",
+                            title=f"Distribuição de Voltas - {carro}",
+                        )
+                        fig.update_traces(textinfo='percent+label')
+                        st.plotly_chart(fig, use_container_width=True)
 
 
             #### Gráfico de stints ###
