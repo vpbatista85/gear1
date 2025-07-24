@@ -643,7 +643,8 @@ def main():
                     ticktext=tick_texts,
                     title="Tempo de Volta (MM:SS.mmm)"
                 ),
-                height=500
+                height=500,
+                facet_col_spacing=0.08 
             )
 
             st.plotly_chart(fig_combo, use_container_width=True)
