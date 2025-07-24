@@ -1004,112 +1004,114 @@ def main():
 
         with tab3:
 
-            if 'Fuel used' in df_filtrado.columns:
-            # Histograma do Consumo
-                fig_hist = go.Figure()
-                fig_hist.add_trace(go.Histogram(
-                    x=df_filtrado["Fuel used"],
-                    nbinsx=30,
-                    marker_color=gear1_colors[0],
-                    opacity=0.75,
-                    name="Consumo por Volta"
-                ))
-                fig_hist.update_layout(
-                    title_text="Histograma do Consumo por Volta (Fuel Used)",
-                    xaxis_title="Fuel Used",
-                    yaxis_title="Frequência"
-                )
-                st.plotly_chart(fig_hist, use_container_width=True)
+                if 'Fuel used' in df_filtrado.columns:
 
-                # Calcular Q1, Q3 e IQR para cada piloto
-                q1 = df_filtrado.groupby('Driver')['Fuel used'].quantile(0.25)
-                q3 = df_filtrado.groupby('Driver')['Fuel used'].quantile(0.75)
-                iqr = q3 - q1
+                    #  tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro"])
 
-                # Limites sem outliers
-                lower_bounds = q1 - 1.5 * iqr
-                upper_bounds = q3 + 1.5 * iqr
+                    agrupador = 'Driver' if tipo_analise  == 'Por Piloto' else 'Por Carro'
 
-                # Intervalo de Y para zoom
-                min_fuel = lower_bounds.min()
-                max_fuel = upper_bounds.max()
+                    # Histograma do Consumo
+                    fig_hist = go.Figure()
+                    fig_hist.add_trace(go.Histogram(
+                        x=df_filtrado["Fuel used"],
+                        nbinsx=30,
+                        marker_color=gear1_colors[0],
+                        opacity=0.75,
+                        name=f"Consumo por Volta ({tipo_analise})"
+                    ))
+                    fig_hist.update_layout(
+                        title_text=f"Histograma do Consumo por Volta ({tipo_analise})",
+                        xaxis_title="Fuel Used (L)",
+                        yaxis_title="Frequência"
+                    )
+                    st.plotly_chart(fig_hist, use_container_width=True)
 
-                # Criar boxplot vertical
-                fig_box_vertical = go.Figure()
-                fig_box_vertical.add_trace(go.Box(
-                    y=df_filtrado["Fuel used"],
-                    x=df_filtrado["Driver"],
-                    boxpoints="outliers",
-                    marker_color=gear1_colors[1],
-                    orientation='v',
-                    boxmean=True
-                ))
+                    # Calcular Q1, Q3 e IQR para cada grupo
+                    q1 = df_filtrado.groupby(agrupador)['Fuel used'].quantile(0.25)
+                    q3 = df_filtrado.groupby(agrupador)['Fuel used'].quantile(0.75)
+                    iqr = q3 - q1
 
-                fig_box_vertical.update_layout(
-                    title_text="Boxplot do Consumo de Combustível por Piloto",
-                    xaxis_title="Piloto",
-                    yaxis_title="Consumo (L)",
-                    yaxis=dict(range=[min_fuel, max_fuel]),
-                    margin=dict(l=40, r=40, t=60, b=120),
-                    showlegend=False
-                )
+                    # Limites sem outliers
+                    lower_bounds = q1 - 1.5 * iqr
+                    upper_bounds = q3 + 1.5 * iqr
 
-                st.plotly_chart(fig_box_vertical, use_container_width=True)
+                    min_fuel = lower_bounds.min()
+                    max_fuel = upper_bounds.max()
 
-                # Garantir que o tempo de volta está em segundos
-                df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
-
-                # Remover outliers (usando intervalo interquartil)
-                q1 = df_filtrado['Lap time (s)'].quantile(0.25)
-                q3 = df_filtrado['Lap time (s)'].quantile(0.75)
-                iqr = q3 - q1
-                filtro = (df_filtrado['Lap time (s)'] >= q1 - 1.5 * iqr) & (df_filtrado['Lap time (s)'] <= q3 + 1.5 * iqr)
-                df_filtrado_sem_outliers = df_filtrado[filtro]
-
-                # Função para converter segundos em MM:SS.mmm
-                def format_lap_time(sec):
-                    minutes = int(sec // 60)
-                    seconds = sec % 60
-                    return f"{minutes:02}:{seconds:06.3f}"
-
-                # Criar o gráfico de dispersão
-                fig_scatter = go.Figure()
-
-                for driver in df_filtrado_sem_outliers['Driver'].unique():
-                    df_driver = df_filtrado_sem_outliers[df_filtrado_sem_outliers['Driver'] == driver]
-                    fig_scatter.add_trace(go.Scatter(
-                        x=df_driver['Fuel used'],
-                        y=df_driver['Lap time (s)'],
-                        mode='markers',
-                        name=driver,
-                        marker=dict(size=8),
-                        hovertemplate=(
-                            f"<b>{driver}</b><br>"
-                            "Fuel used: %{x:.2f} L<br>"
-                            "Lap time: %{customdata}<extra></extra>"
-                        ),
-                        customdata=[format_lap_time(x) for x in df_driver['Lap time (s)']]
+                    # Boxplot vertical por agrupador
+                    fig_box_vertical = go.Figure()
+                    fig_box_vertical.add_trace(go.Box(
+                        y=df_filtrado["Fuel used"],
+                        x=df_filtrado[agrupador],
+                        boxpoints="outliers",
+                        marker_color=gear1_colors[1],
+                        orientation='v',
+                        boxmean=True
                     ))
 
-                # Ajustar layout e formato do eixo Y
-                fig_scatter.update_layout(
-                    title="Consumo de Combustível vs Tempo de Volta",
-                    xaxis_title="Consumo de Combustível (L)",
-                    yaxis_title="Tempo de Volta (MM:SS.mmm)",
-                    legend_title="Piloto",
-                    margin=dict(l=40, r=40, t=60, b=40)
-                )
+                    fig_box_vertical.update_layout(
+                        title_text=f"Boxplot do Consumo de Combustível por {agrupador}",
+                        xaxis_title=agrupador,
+                        yaxis_title="Consumo (L)",
+                        yaxis=dict(range=[min_fuel, max_fuel]),
+                        margin=dict(l=40, r=40, t=60, b=120),
+                        showlegend=False
+                    )
+                    st.plotly_chart(fig_box_vertical, use_container_width=True)
 
-                # Formatar os ticks do eixo Y para MM:SS.mmm
-                yticks = np.linspace(df_filtrado_sem_outliers['Lap time (s)'].min(),
-                                    df_filtrado_sem_outliers['Lap time (s)'].max(), 6)
+                    # Garantir que o tempo de volta está em segundos
+                    df_filtrado['Lap time (s)'] = df_filtrado['Lap time'].dt.total_seconds()
 
-                fig_scatter.update_yaxes(
-                    tickvals=yticks,
-                    ticktext=[format_lap_time(v) for v in yticks]
-                )
+                    # Remover outliers do tempo
+                    q1 = df_filtrado['Lap time (s)'].quantile(0.25)
+                    q3 = df_filtrado['Lap time (s)'].quantile(0.75)
+                    iqr = q3 - q1
+                    filtro = (df_filtrado['Lap time (s)'] >= q1 - 1.5 * iqr) & (df_filtrado['Lap time (s)'] <= q3 + 1.5 * iqr)
+                    df_filtrado_sem_outliers = df_filtrado[filtro]
 
-                st.plotly_chart(fig_scatter, use_container_width=True)
+                    def format_lap_time(sec):
+                        minutes = int(sec // 60)
+                        seconds = sec % 60
+                        return f"{minutes:02}:{seconds:06.3f}"
+
+                    # Gráfico de dispersão Fuel vs Lap Time
+                    fig_scatter = go.Figure()
+
+                    for grupo in df_filtrado_sem_outliers[agrupador].unique():
+                        df_grupo = df_filtrado_sem_outliers[df_filtrado_sem_outliers[agrupador] == grupo]
+                        fig_scatter.add_trace(go.Scatter(
+                            x=df_grupo['Fuel used'],
+                            y=df_grupo['Lap time (s)'],
+                            mode='markers',
+                            name=grupo,
+                            marker=dict(size=8),
+                            hovertemplate=(
+                                f"<b>{grupo}</b><br>"
+                                "Fuel used: %{x:.2f} L<br>"
+                                "Lap time: %{customdata}<extra></extra>"
+                            ),
+                            customdata=[format_lap_time(x) for x in df_grupo['Lap time (s)']]
+                        ))
+
+                    yticks = np.linspace(
+                        df_filtrado_sem_outliers['Lap time (s)'].min(),
+                        df_filtrado_sem_outliers['Lap time (s)'].max(),
+                        6
+                    )
+
+                    fig_scatter.update_layout(
+                        title=f"Consumo vs Tempo de Volta por {agrupador}",
+                        xaxis_title="Consumo de Combustível (L)",
+                        yaxis_title="Tempo de Volta (MM:SS.mmm)",
+                        legend_title=agrupador,
+                        margin=dict(l=40, r=40, t=60, b=40)
+                    )
+                    fig_scatter.update_yaxes(
+                        tickvals=yticks,
+                        ticktext=[format_lap_time(v) for v in yticks]
+                    )
+
+                    st.plotly_chart(fig_scatter, use_container_width=True)
 
         with tab2:
 
