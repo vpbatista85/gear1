@@ -1113,12 +1113,16 @@ def main():
 
                     st.plotly_chart(fig_scatter, use_container_width=True)
 
+                    #Voltas por tanque   
                     # Garantir que os dados estejam ordenados corretamente
                     df_fuel_sorted = df_filtrado.sort_values(by=["Driver", "Car", "Lap"])
 
                     # Calcular consumo por volta (diferencial do Fuel Level, invertido)
                     df_fuel_sorted["Fuel used"] = df_fuel_sorted.groupby(["Driver", "Car"])["Fuel level"].diff(-1)
                     df_fuel_clean = df_fuel_sorted.dropna(subset=["Fuel used"])
+
+                    # Remover valores negativos e muito pequenos (ex: < 0.05 L)
+                    df_fuel_clean = df_fuel_clean[df_fuel_clean["Fuel used"] > 0.05]
 
                     # Remover outliers usando IQR
                     Q1 = df_fuel_clean["Fuel used"].quantile(0.25)
@@ -1138,7 +1142,10 @@ def main():
                     # Estimar voltas por tanque
                     df_fuel_filtered["Estimated_Laps"] = df_fuel_filtered["Tank_Capacity"] / df_fuel_filtered["Fuel used"]
 
-                    # Criar gráfico de boxplot por carro (pode adicionar também Driver se quiser mais granularidade)
+                    # Remover valores absurdos (por exemplo, > 50 voltas por tanque, ajustável)
+                    df_fuel_filtered = df_fuel_filtered[df_fuel_filtered["Estimated_Laps"] <= 50]
+
+                    # Criar gráfico de boxplot por carro
                     fig = px.box(
                         df_fuel_filtered,
                         x="Car",
@@ -1151,6 +1158,7 @@ def main():
 
                     fig.update_layout(xaxis_title="Carro", yaxis_title="Voltas Estimadas por Tanque")
                     st.plotly_chart(fig, use_container_width=True)
+
 
         with tab2:
 
