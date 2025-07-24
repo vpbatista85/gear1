@@ -526,7 +526,7 @@ def main():
                             title=f"Distribuição de Voltas - {carro}",
                         )
                         fig.update_traces(textinfo='percent+label')
-                        fig.update_layout(height=400)
+                        fig.update_layout(height=300)
                         st.plotly_chart(fig, use_container_width=True)
 
 
@@ -544,7 +544,7 @@ def main():
                 category_orders={'Run': sorted(stint_counts['Run'].unique(), key=lambda x: int(x))},
                 title='Quantidade de Voltas por Stint (Run) por Piloto'
             )
-            fig.update_layout(xaxis_title='Stint (Run)', yaxis_title='Quantidade de Voltas', height=400)
+            fig.update_layout(xaxis_title='Stint (Run)', yaxis_title='Quantidade de Voltas', height=350)
             st.plotly_chart(fig, use_container_width=True)
 
             #### Gráficos principais: Histograma e Boxplot ####
