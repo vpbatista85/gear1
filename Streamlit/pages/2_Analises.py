@@ -1130,7 +1130,7 @@ def main():
                     df_fuel_filtered = df_fuel_clean[(df_fuel_clean["Fuel_Used"] >= fuel_min) & (df_fuel_clean["Fuel_Used"] <= fuel_max)]
 
                     # Obter capacidade do tanque (maior valor de Fuel Level quando Lap == 0), por Carro
-                    tank_capacity = df_filtrado[df_filtradoS["Lap"] == 0].groupby("Car")["Fuel Level"].max()
+                    tank_capacity = df_filtrado[df_filtrado["Lap"] == 0].groupby("Car")["Fuel Level"].max()
 
                     # Mapear a capacidade do tanque para cada linha
                     df_fuel_filtered["Tank_Capacity"] = df_fuel_filtered["Car"].map(tank_capacity)
