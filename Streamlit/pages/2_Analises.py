@@ -579,7 +579,7 @@ def main():
             ### Adiciona histogramas por Carro e Piloto (facetado) ###
             fig_combo = px.histogram(
                 filtered_df,
-                x=filtered_df["Lap time"].dt.total_seconds(),
+                x=filtered_df["Lap time"].dt.total_seconds().strftime("%M:%S.%f")[:-3],
                 color="Driver",
                 facet_col="Car",
                 nbins=num_bins,
