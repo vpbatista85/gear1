@@ -1008,7 +1008,7 @@ def main():
 
                     #  tipo_analise = st.sidebar.selectbox("Tipo de Análise", ["Por Piloto", "Por Carro"])
 
-                    agrupador = 'Driver' if tipo_analise  == 'Por Piloto' else 'Por Carro'
+                    agrupador = 'Driver' if tipo_analise  == 'Por Piloto' else 'Car'
 
                     # Histograma do Consumo
                     fig_hist = go.Figure()
