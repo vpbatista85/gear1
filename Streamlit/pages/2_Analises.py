@@ -513,11 +513,20 @@ def main():
                 names="Driver",
                 values="Voltas",
                 facet_col="Car",
+                facet_col_wrap=2,  # Máximo de 2 gráficos por linha
                 title="Distribuição de Voltas por Piloto para Cada Carro"
             )
 
             fig_pizza.update_traces(textinfo='percent+label')
-            fig_pizza.update_layout(showlegend=True)
+            fig_pizza.update_layout(
+                showlegend=True,
+                margin=dict(t=60, b=20),
+                uniformtext_minsize=10,
+                uniformtext_mode='hide'
+            )
+
+            fig_pizza.update_layout(facet_col_spacing=0.08)  # Espaço entre os gráficos
+
             st.plotly_chart(fig_pizza, use_container_width=True)
 
 
