@@ -869,20 +869,20 @@ def main():
                 # Gráfico de dispersão: Temperatura da pista (x) vs Tempo de volta (y)
                 fig_temp = go.Figure()
 
-                for driver in df_filtrado_sem_outliers['Driver'].unique():
-                    df_driver = df_filtrado_sem_outliers[df_filtrado_sem_outliers['Driver'] == driver]
-                    fig_temp.add_trace(go.Scatter(
-                        x=df_driver['Track temp'],
-                        y=df_driver['Lap time (s)'],
+                for grupo in df_filtrado_sem_outliers[grupo_col].unique():
+                    df_grupo = df_filtrado_sem_outliers[df_filtrado_sem_outliers[grupo_col] == grupo]
+                    fig_air_temp.add_trace(go.Scatter(
+                        x=df_grupo['Track temp'],
+                        y=df_grupo['Lap time (s)'],
                         mode='markers',
-                        name=driver,
+                        name=grupo,
                         marker=dict(size=8),
                         hovertemplate=(
-                            f"<b>{driver}</b><br>"
-                            "Track temp: %{x}°C<br>"
+                            f"<b>{grupo}</b><br>"
+                            "Air temp: %{x}°C<br>"
                             "Lap time: %{customdata}<extra></extra>"
                         ),
-                        customdata=[format_lap_time(t) for t in df_driver['Lap time (s)']]
+                        customdata=[format_lap_time(t) for t in df_grupo['Lap time (s)']]
                     ))
 
                 # Ajustar layout
@@ -890,7 +890,7 @@ def main():
                     title="Temperatura da Pista vs Tempo de Volta",
                     xaxis_title="Temperatura da Pista (°C)",
                     yaxis_title="Tempo de Volta (MM:SS.mmm)",
-                    legend_title="Piloto",
+                    legend_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
                     margin=dict(l=40, r=40, t=60, b=40)
                 )
 
