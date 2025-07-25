@@ -1200,12 +1200,43 @@ def main():
 
                     # Exibir boxplot do consumo estimado total
                     st.markdown("### Distribuição de Consumo Estimado (Litros)")
-                    fig_consumo = px.box(df_fuel_filtered, y="Consumo_Estimado_Prova_Litros", color="Label", points="all", labels={"Consumo_Estimado_Prova_Litros": "Consumo (L)"})
+                    fig_consumo = go.Figure()
+
+                    for label in df_fuel_filtered["Label"].unique():
+                        grupo = df_fuel_filtered[df_fuel_filtered["Label"] == label]
+                        fig_consumo.add_trace(go.Box(
+                            y=grupo["Consumo_Estimado_Prova_Litros"],
+                            name=label,
+                            boxpoints="outliers",  # mostra os pontos individuais
+                            marker_color=None,
+                            boxmean=True,  # mostra a média 
+                        ))
+
+                    fig_consumo.update_layout(
+                        yaxis_title="Consumo (L)",
+                        boxmode="group"
+                    )
                     st.plotly_chart(fig_consumo, use_container_width=True)
 
-                    # Exibir boxplot do número estimado de paradas
+
+                    # Distribuição Estimada de Paradas
                     st.markdown("### Distribuição Estimada de Paradas")
-                    fig_paradas = px.box(df_fuel_filtered, y="Paradas_Estimadas", color="Label", points="all", labels={"Paradas_Estimadas": "Nº de Paradas"})
+                    fig_paradas = go.Figure()
+
+                    for label in df_fuel_filtered["Label"].unique():
+                        grupo = df_fuel_filtered[df_fuel_filtered["Label"] == label]
+                        fig_paradas.add_trace(go.Box(
+                            y=grupo["Paradas_Estimadas"],
+                            name=label,
+                            boxpoints="outliers",
+                            marker_color=None,
+                            boxmean=True,  # mostra a média 
+                        ))
+
+                    fig_paradas.update_layout(
+                        yaxis_title="Nº de Paradas",
+                        boxmode="group"
+                    )
                     st.plotly_chart(fig_paradas, use_container_width=True)
 
         with tab2:
