@@ -1186,7 +1186,7 @@ def main():
                     duracao_prova_horas = st.number_input("Duração da prova (em horas)", min_value=0.5, max_value=24.0, value=1.0, step=0.5)
 
                     # Estimar tempo médio de volta em segundos
-                    df_fuel_filtered["LapTimeSeconds"] = df_fuel_filtered["LapTime"].dt.total_seconds()
+                    df_fuel_filtered["LapTimeSeconds"] = df_fuel_filtered["Lap time"].dt.total_seconds()
                     tempo_medio_volta = df_fuel_filtered["LapTimeSeconds"].mean()
 
                     # Estimar número total de voltas
