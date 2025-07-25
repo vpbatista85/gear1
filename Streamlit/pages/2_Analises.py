@@ -805,7 +805,7 @@ def main():
 
             if 'Track temp' in df_filtrado.columns:
                 # st.subheader("Análise da Temperatura da Pista")
-
+                grupo_col = "Driver" if tipo_analise == "Por Piloto" else "Car"
                 # Histograma
                 fig_hist_track = go.Figure()
                 fig_hist_track.add_trace(go.Histogram(
@@ -823,8 +823,8 @@ def main():
                 st.plotly_chart(fig_hist_track, use_container_width=True)
 
                 # Boxplot
-                q1_track = df_filtrado.groupby('Driver')['Track temp'].quantile(0.25)
-                q3_track = df_filtrado.groupby('Driver')['Track temp'].quantile(0.75)
+                q1_track = df_filtrado.groupby(grupo_col)['Track temp'].quantile(0.25)
+                q3_track = df_filtrado.groupby(grupo_col)['Track temp'].quantile(0.75)
                 iqr_track = q3_track - q1_track
                 lower_bounds_track = q1_track - 1.5 * iqr_track
                 upper_bounds_track = q3_track + 1.5 * iqr_track
@@ -834,15 +834,15 @@ def main():
                 fig_box_track = go.Figure()
                 fig_box_track.add_trace(go.Box(
                     y=df_filtrado["Track temp"],
-                    x=df_filtrado["Driver"],
+                    x=df_filtrado[grupo_col],
                     boxpoints="outliers",
                     marker_color=gear1_colors[0],
                     orientation='v',
                     boxmean=True
                 ))
                 fig_box_track.update_layout(
-                    title_text="Boxplot da Temperatura da Pista por Piloto",
-                    xaxis_title="Piloto",
+                    title_text=f"Boxplot da Temperatura da Pista por {'Piloto' if tipo_analise == 'Por Piloto' else 'Carro'}",
+                    xaxis_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
                     yaxis_title="Temperatura da Pista (°C)",
                     yaxis=dict(range=[min_track, max_track]),
                     margin=dict(l=40, r=40, t=60, b=120),
