@@ -992,7 +992,7 @@ def main():
                     title="Temperatura do Ar vs Tempo de Volta",
                     xaxis_title="Temperatura do Ar (°C)",
                     yaxis_title="Tempo de Volta (MM:SS.mmm)",
-                    legend_title="Piloto" if tipo_analise == "Por Piloto" else "Carro"
+                    legend_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
                     margin=dict(l=40, r=40, t=60, b=40)
                 )
 
