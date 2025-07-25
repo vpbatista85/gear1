@@ -907,7 +907,8 @@ def main():
 
             if 'Air temperature' in df_filtrado.columns:
                 # st.subheader("Análise da Temperatura do Ar")
-
+                # tipo_analise = st.selectbox("Tipo de análise", ["Por Piloto", "Por Carro"])
+                grupo_col = "Driver" if tipo_analise == "Por Piloto" else "Car"
                 # Histograma
                 fig_hist_air = go.Figure()
                 fig_hist_air.add_trace(go.Histogram(
@@ -925,8 +926,9 @@ def main():
                 st.plotly_chart(fig_hist_air, use_container_width=True)
 
                 # Boxplot
-                q1_air = df_filtrado.groupby('Driver')['Air temperature'].quantile(0.25)
-                q3_air = df_filtrado.groupby('Driver')['Air temperature'].quantile(0.75)
+                q1_air = df_filtrado.groupby(grupo_col)['Air temperature'].quantile(0.25)
+                q3_air = df_filtrado.groupby(grupo_col)['Air temperature'].quantile(0.75)
+
                 iqr_air = q3_air - q1_air
                 lower_bounds_air = q1_air - 1.5 * iqr_air
                 upper_bounds_air = q3_air + 1.5 * iqr_air
@@ -936,15 +938,15 @@ def main():
                 fig_box_air = go.Figure()
                 fig_box_air.add_trace(go.Box(
                     y=df_filtrado["Air temperature"],
-                    x=df_filtrado["Driver"],
+                    x=df_filtrado[grupo_col],
                     boxpoints="outliers",
                     marker_color=gear1_colors[1],
                     orientation='v',
                     boxmean=True
                 ))
                 fig_box_air.update_layout(
-                    title_text="Boxplot da Temperatura do Ar por Piloto",
-                    xaxis_title="Piloto",
+                    title_text=f"Boxplot da Temperatura do Ar por {'Piloto' if tipo_analise == 'Por Piloto' else 'Carro'}",
+                    xaxis_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
                     yaxis_title="Temperatura do Ar (°C)",
                     yaxis=dict(range=[min_air, max_air]),
                     margin=dict(l=40, r=40, t=60, b=120),
@@ -963,24 +965,26 @@ def main():
                     minutes = int(sec // 60)
                     seconds = sec % 60
                     return f"{minutes:02}:{seconds:06.3f}"
+                
+
 
                 # Gráfico de dispersão: Temperatura do ar (x) vs Tempo de volta (y)
                 fig_air_temp = go.Figure()
 
-                for driver in df_filtrado_sem_outliers['Driver'].unique():
-                    df_driver = df_filtrado_sem_outliers[df_filtrado_sem_outliers['Driver'] == driver]
+                for grupo in df_filtrado_sem_outliers[grupo_col].unique():
+                    df_grupo = df_filtrado_sem_outliers[df_filtrado_sem_outliers[grupo_col] == grupo]
                     fig_air_temp.add_trace(go.Scatter(
-                        x=df_driver['Air temperature'],
-                        y=df_driver['Lap time (s)'],
+                        x=df_grupo['Air temperature'],
+                        y=df_grupo['Lap time (s)'],
                         mode='markers',
-                        name=driver,
+                        name=grupo,
                         marker=dict(size=8),
                         hovertemplate=(
-                            f"<b>{driver}</b><br>"
+                            f"<b>{grupo}</b><br>"
                             "Air temp: %{x}°C<br>"
                             "Lap time: %{customdata}<extra></extra>"
                         ),
-                        customdata=[format_lap_time(t) for t in df_driver['Lap time (s)']]
+                        customdata=[format_lap_time(t) for t in df_grupo['Lap time (s)']]
                     ))
 
                 # Layout do gráfico
@@ -988,7 +992,7 @@ def main():
                     title="Temperatura do Ar vs Tempo de Volta",
                     xaxis_title="Temperatura do Ar (°C)",
                     yaxis_title="Tempo de Volta (MM:SS.mmm)",
-                    legend_title="Piloto",
+                    legend_title="Piloto" if tipo_analise == "Por Piloto" else "Carro"
                     margin=dict(l=40, r=40, t=60, b=40)
                 )
 
