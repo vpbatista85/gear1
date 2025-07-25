@@ -871,7 +871,7 @@ def main():
 
                 for grupo in df_filtrado_sem_outliers[grupo_col].unique():
                     df_grupo = df_filtrado_sem_outliers[df_filtrado_sem_outliers[grupo_col] == grupo]
-                    fig_air_temp.add_trace(go.Scatter(
+                    fig_temp.add_trace(go.Scatter(
                         x=df_grupo['Track temp'],
                         y=df_grupo['Lap time (s)'],
                         mode='markers',
