@@ -1156,16 +1156,29 @@ def main():
                     df_fuel_filtered = df_fuel_filtered[df_fuel_filtered["Estimated_Laps"] < 100]
 
                     # Criar gráfico
-                    fig = px.box(
-                        df_fuel_filtered,
-                        x="Label",
-                        y="Estimated_Laps",
-                        points="outliers",
+                    # Obter os grupos únicos
+                    grupos = df_fuel_filtered["Label"].unique()
+
+                    # Criar traços para cada grupo
+                    fig = go.Figure()
+
+                    for grupo in grupos:
+                        dados = df_fuel_filtered[df_fuel_filtered["Label"] == grupo]["Estimated_Laps"]
+
+                        fig.add_trace(go.Box(
+                            y=dados,
+                            name=str(grupo),
+                            boxpoints="outliers",
+                            marker_color=None,
+                            boxmean="sd",  # mostra a média e o desvio padrão
+                        ))
+
+                    fig.update_layout(
                         title="Distribuição Estimada de Voltas por Tanque",
-                        labels={"Estimated_Laps": "Voltas por Tanque", "Label": "Piloto" if tipo_analise == "Por Piloto" else "Carro"},
-                        color="Label",
+                        xaxis_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
+                        yaxis_title="Voltas Estimadas por Tanque"
                     )
-                    fig.update_layout(xaxis_title="Piloto" if tipo_analise == "Por Piloto" else "Carro", yaxis_title="Voltas Estimadas por Tanque")
+
                     st.plotly_chart(fig, use_container_width=True)
 
 
