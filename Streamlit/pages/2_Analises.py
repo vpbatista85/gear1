@@ -1214,7 +1214,7 @@ def main():
 
                     fig_consumo.update_layout(
                         yaxis_title="Consumo (L)",
-                        boxmode="group"
+                        # boxmode="group"
                     )
                     st.plotly_chart(fig_consumo, use_container_width=True)
 
@@ -1235,7 +1235,7 @@ def main():
 
                     fig_paradas.update_layout(
                         yaxis_title="Nº de Paradas",
-                        boxmode="group"
+                        # boxmode="group"
                     )
                     st.plotly_chart(fig_paradas, use_container_width=True)
 
