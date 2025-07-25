@@ -987,25 +987,25 @@ def main():
                         customdata=[format_lap_time(t) for t in df_grupo['Lap time (s)']]
                     ))
 
-                    # Layout do gráfico
-                    fig_air_temp.update_layout(
-                        title="Temperatura do Ar vs Tempo de Volta",
-                        xaxis_title="Temperatura do Ar (°C)",
-                        yaxis_title="Tempo de Volta (MM:SS.mmm)",
-                        legend_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
-                        margin=dict(l=40, r=40, t=60, b=40)
-                    )
+                # Layout do gráfico
+                fig_air_temp.update_layout(
+                    title="Temperatura do Ar vs Tempo de Volta",
+                    xaxis_title="Temperatura do Ar (°C)",
+                    yaxis_title="Tempo de Volta (MM:SS.mmm)",
+                    legend_title="Piloto" if tipo_analise == "Por Piloto" else "Carro",
+                    margin=dict(l=40, r=40, t=60, b=40)
+                )
 
-                    # Eixo Y formatado
-                    yticks = np.linspace(df_filtrado_sem_outliers['Lap time (s)'].min(),
-                                        df_filtrado_sem_outliers['Lap time (s)'].max(), 6)
+                # Eixo Y formatado
+                yticks = np.linspace(df_filtrado_sem_outliers['Lap time (s)'].min(),
+                                    df_filtrado_sem_outliers['Lap time (s)'].max(), 6)
 
-                    fig_air_temp.update_yaxes(
-                        tickvals=yticks,
-                        ticktext=[format_lap_time(v) for v in yticks]
-                    )
+                fig_air_temp.update_yaxes(
+                    tickvals=yticks,
+                    ticktext=[format_lap_time(v) for v in yticks]
+                )
 
-                    st.plotly_chart(fig_air_temp, use_container_width=True)
+                st.plotly_chart(fig_air_temp, use_container_width=True)
 
         with tab3:
 
