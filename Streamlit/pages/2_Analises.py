@@ -1170,7 +1170,7 @@ def main():
                             name=str(grupo),
                             boxpoints="outliers",
                             marker_color=None,
-                            boxmean="sd",  # mostra a média e o desvio padrão
+                            boxmean=True,  # mostra a média 
                         ))
 
                     fig.update_layout(
