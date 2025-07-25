@@ -1186,13 +1186,13 @@ def main():
                     duracao_prova_horas = st.number_input("Duração da Prova (em horas)", min_value=0.5, max_value=24.0, value=1.0, step=0.5)
 
                     # Transformar em minutos e voltas estimadas (baseado na média de tempo de volta)
-                    media_tempo_volta = df_fuel_filtered["Lap_Time"].mean()
+                    media_tempo_volta = df_fuel_filtered["Lap time"].mean()
                     duracao_prova_segundos = duracao_prova_horas * 3600
                     voltas_estimadas = duracao_prova_segundos / media_tempo_volta.total_seconds()
 
                     # Estimar consumo total por piloto/carro com base nas distribuições
                     df_fuel_filtered["Consumo_Estimado_Prova_Litros"] = df_fuel_filtered["Fuel_Per_Lap"] * voltas_estimadas
-                    df_fuel_filtered["Paradas_Estimadas"] = df_fuel_filtered["Consumo_Estimado_Prova_Litros"] / capacidade_tanque
+                    df_fuel_filtered["Paradas_Estimadas"] = df_fuel_filtered["Consumo_Estimado_Prova_Litros"] / tank_capacity
                     df_fuel_filtered["Paradas_Estimadas"] = df_fuel_filtered["Paradas_Estimadas"].apply(np.floor)
 
                     # Agrupar por piloto ou carro
