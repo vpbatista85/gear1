@@ -1183,60 +1183,30 @@ def main():
                 
                     #Funcionalidade para verificação de paradas pela duração da prova
                     # Entrada do usuário para a duração da prova
-                    duracao_prova_horas = st.number_input("Duração da Prova (em horas)", min_value=0.5, max_value=24.0, value=1.0, step=0.5)
+                    duracao_prova_horas = st.number_input("Duração da prova (em horas)", min_value=0.5, max_value=24.0, value=1.0, step=0.5)
 
-                    # Transformar em minutos e voltas estimadas (baseado na média de tempo de volta)
-                    media_tempo_volta = df_fuel_filtered["Lap time"].mean()
-                    duracao_prova_segundos = duracao_prova_horas * 3600
-                    voltas_estimadas = duracao_prova_segundos / media_tempo_volta.total_seconds()
+                    # Estimar tempo médio de volta em segundos
+                    df_fuel_filtered["LapTimeSeconds"] = df_fuel_filtered["LapTime"].dt.total_seconds()
+                    tempo_medio_volta = df_fuel_filtered["LapTimeSeconds"].mean()
 
-                    # Estimar consumo total por piloto/carro com base nas distribuições
-                    df_fuel_filtered["Consumo_Estimado_Prova_Litros"] = df_fuel_filtered["Fuel_Per_Lap"] * voltas_estimadas
-                    df_fuel_filtered["Paradas_Estimadas"] = df_fuel_filtered["Consumo_Estimado_Prova_Litros"] / tank_capacity
-                    df_fuel_filtered["Paradas_Estimadas"] = df_fuel_filtered["Paradas_Estimadas"].apply(np.floor)
+                    # Estimar número total de voltas
+                    voltas_estimadas = (duracao_prova_horas * 3600) / tempo_medio_volta
 
-                    # Agrupar por piloto ou carro
-                    label_agrupamento = "Piloto" if tipo_analise == "Por Piloto" else "Carro"
+                    # Estimar consumo total em litros para a duração informada
+                    df_fuel_filtered["Consumo_Estimado_Prova_Litros"] = df_fuel_filtered["Fuel used"] * voltas_estimadas
 
-                    # Gráfico 1: Consumo total estimado
-                    fig1 = go.Figure()
+                    # Estimar número de paradas
+                    df_fuel_filtered["Paradas_Estimadas"] = df_fuel_filtered["Consumo_Estimado_Prova_Litros"] / df_fuel_filtered["Tank_Capacity"]
 
-                    for label in df_fuel_filtered["Label"].unique():
-                        dados = df_fuel_filtered[df_fuel_filtered["Label"] == label]["Consumo_Estimado_Prova_Litros"]
-                        fig1.add_trace(go.Box(
-                            y=dados,
-                            name=str(label),
-                            boxpoints="outliers",
-                            boxmean="sd"
-                        ))
+                    # Exibir boxplot do consumo estimado total
+                    st.markdown("### Distribuição de Consumo Estimado (Litros)")
+                    fig_consumo = px.box(df_fuel_filtered, y="Consumo_Estimado_Prova_Litros", color="Label", points="all", labels={"Consumo_Estimado_Prova_Litros": "Consumo (L)"})
+                    st.plotly_chart(fig_consumo, use_container_width=True)
 
-                    fig1.update_layout(
-                        title="Distribuição de Consumo Total Estimado (L)",
-                        yaxis_title="Litros Estimados",
-                        xaxis_title=label_agrupamento
-                    )
-
-                    # Gráfico 2: Distribuição de paradas estimadas
-                    fig2 = go.Figure()
-
-                    for label in df_fuel_filtered["Label"].unique():
-                        dados = df_fuel_filtered[df_fuel_filtered["Label"] == label]["Paradas_Estimadas"]
-                        fig2.add_trace(go.Box(
-                            y=dados,
-                            name=str(label),
-                            boxpoints="outliers",
-                            boxmean="sd"
-                        ))
-
-                    fig2.update_layout(
-                        title="Distribuição de Paradas Estimadas na Prova",
-                        yaxis_title="Número de Paradas",
-                        xaxis_title=label_agrupamento
-                    )
-
-                    # Exibir os gráficos
-                    st.plotly_chart(fig1, use_container_width=True)
-                    st.plotly_chart(fig2, use_container_width=True)
+                    # Exibir boxplot do número estimado de paradas
+                    st.markdown("### Distribuição Estimada de Paradas")
+                    fig_paradas = px.box(df_fuel_filtered, y="Paradas_Estimadas", color="Label", points="all", labels={"Paradas_Estimadas": "Nº de Paradas"})
+                    st.plotly_chart(fig_paradas, use_container_width=True)
 
         with tab2:
 
