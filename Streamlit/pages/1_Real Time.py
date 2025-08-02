@@ -6,16 +6,17 @@ import pandas as pd
 import io
 
 # === Configurações ===
-SERVICE_ACCOUNT_FILE = 'C:/Users/vpb85/Documents/Gear1/gear1-ir-36de8419de96.json'
+# SERVICE_ACCOUNT_FILE = 'C:/Users/vpb85/Documents/Gear1/gear1-ir-36de8419de96.json'
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 DRIVE_FOLDER_ID = '1Ix44ranjPTYSPMN6W9YhwXqQSCC94uRZ'
 
 # === Autenticação ===
+service_account_info = st.secrets["google_service_account"]
+
+creds = service_account.Credentials.from_service_account_info(service_account_info)
+
 @st.cache_resource(show_spinner=False)
 def criar_servico_drive():
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
     return build('drive', 'v3', credentials=creds)
 
 drive_service = criar_servico_drive()
