@@ -4,7 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import sys
-from flask import Flask, request, jsonify
+# from flask import Flask, request, jsonify
 import json
 import os
 import requests
@@ -61,22 +61,22 @@ st.title(":green[Bem-vindo ao Gear One Head Quarter]")
 st.write(":green[Utilize o menu à esquerda para navegar entre as páginas.]")
 
 
-st.title("📡 Controle do iRacing - Gear1App")
+# st.title("📡 Controle do iRacing - Gear1App")
 
-# 🔄 Tenta buscar o IP do client local automaticamente
-st.write("🔄 Descobrindo o IP do client local...")
+# # 🔄 Tenta buscar o IP do client local automaticamente
+# st.write("🔄 Descobrindo o IP do client local...")
 
-try:
-    response = requests.get("http://localhost:5001/get_ip", timeout=3)  # 3s de timeout
-    if response.status_code == 200:
-        ip = response.json().get("ip")
-        st.write(f"✅ IP detectado: {ip}")
-    else:
-        st.write("⚠️ Não foi possível detectar o IP do client local.")
-except requests.exceptions.RequestException:
-    st.write("⚠️ Não foi possível detectar o IP do client local.")
+# try:
+#     response = requests.get("http://localhost:5001/get_ip", timeout=3)  # 3s de timeout
+#     if response.status_code == 200:
+#         ip = response.json().get("ip")
+#         st.write(f"✅ IP detectado: {ip}")
+#     else:
+#         st.write("⚠️ Não foi possível detectar o IP do client local.")
+# except requests.exceptions.RequestException:
+#     st.write("⚠️ Não foi possível detectar o IP do client local.")
 
-st.write("📊 Dashboard de Dados em Tempo Real...")
+# st.write("📊 Dashboard de Dados em Tempo Real...")
 
 # app = Flask(__name__)
 
