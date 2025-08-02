@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import time
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from io import BytesIO
@@ -38,30 +37,38 @@ def carregar_parquet_drive(file_id):
 
 st.title("Monitoramento em Tempo Real")
 
-placeholder = st.empty()
+# Intervalo em segundos para atualizar
+INTERVALO_ATUALIZACAO = 10
 
-# Atualiza a cada 10 segundos
-INTERVALO_ATUALIZACAO = 1
-
+# Buscar arquivos *fora* do loop para não repetir nomes
 arquivos = buscar_arquivos_live()
+
 if arquivos:
     nomes = [f['name'] for f in arquivos]
-    # Seleção do arquivo na sidebar
     nome_arquivo = st.sidebar.selectbox("Selecione a sessão:", nomes)
     file_id = next(f['id'] for f in arquivos if f['name'] == nome_arquivo)
 else:
+    st.sidebar.info("Nenhuma sessão encontrada.")
     nome_arquivo = None
     file_id = None
 
-while True:
-    with placeholder.container():
-        if file_id:
-            st.subheader(f"Sessão ativa: {nome_arquivo}")
-            try:
-                df = carregar_parquet_drive(file_id)
-                st.dataframe(df, use_container_width=True)
-            except Exception as e:
-                st.error(f"Erro ao carregar o DataFrame: {e}")
-        else:
-            st.info("Nenhuma sessão no momento.")
-    time.sleep(INTERVALO_ATUALIZACAO)
+placeholder = st.empty()
+
+if file_id:
+    st.subheader(f"Sessão ativa: {nome_arquivo}")
+    try:
+        df = carregar_parquet_drive(file_id)
+        placeholder.dataframe(df, use_container_width=True)
+    except Exception as e:
+        st.error(f"Erro ao carregar o DataFrame: {e}")
+else:
+    st.info("Nenhuma sessão no momento.")
+
+# Auto refresh usando JS (recarrega a página a cada INTERVALO_ATUALIZACAO segundos)
+st.markdown(f"""
+    <script>
+        setTimeout(() => {{
+            window.location.reload();
+        }}, {INTERVALO_ATUALIZACAO * 1000});
+    </script>
+""", unsafe_allow_html=True)
