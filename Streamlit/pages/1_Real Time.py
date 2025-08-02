@@ -40,7 +40,7 @@ def carregar_parquet_drive(file_id):
 st.title("Monitoramento em Tempo Real")
 
 # Intervalo em segundos para atualizar
-INTERVALO_ATUALIZACAO = 10
+INTERVALO_ATUALIZACAO = 3
 
 # Buscar arquivos A CADA carga da página para atualizar a lista
 arquivos = buscar_arquivos_live()
