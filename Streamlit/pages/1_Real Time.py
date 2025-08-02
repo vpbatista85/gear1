@@ -15,14 +15,15 @@ def criar_servico_drive():
 
 drive_service = criar_servico_drive()
 
-# Função para buscar arquivos com "_Live.parquet"
-def buscar_arquivos_live():
+# Função para buscar arquivos com "_Live.parquet" - limitando para 10 arquivos mais recentes
+def buscar_arquivos_live(limite=10):
     query = "name contains '_Live.parquet' and mimeType='application/octet-stream'"
-    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)').execute()
+    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)', pageSize=50).execute()
     files = results.get('files', [])
-    # Ordenar pelo último modificado
+    if not files:
+        return []
     files.sort(key=lambda x: x['modifiedTime'], reverse=True)
-    return files
+    return files[:limite]
 
 # Função para baixar o arquivo do Drive
 def carregar_parquet_drive(file_id):
@@ -33,6 +34,7 @@ def carregar_parquet_drive(file_id):
     while not done:
         status, done = downloader.next_chunk()
     fh.seek(0)
+    # Forçar o recarregamento do DataFrame sempre que o arquivo for baixado
     return pd.read_parquet(fh)
 
 st.title("Monitoramento em Tempo Real")
@@ -40,25 +42,24 @@ st.title("Monitoramento em Tempo Real")
 # Intervalo em segundos para atualizar
 INTERVALO_ATUALIZACAO = 10
 
-# Buscar arquivos *fora* do loop para não repetir nomes
+# Buscar arquivos A CADA carga da página para atualizar a lista
 arquivos = buscar_arquivos_live()
 
 if arquivos:
     nomes = [f['name'] for f in arquivos]
-    nome_arquivo = st.sidebar.selectbox("Selecione a sessão:", nomes)
+    # Usar key para preservar a seleção entre atualizações
+    nome_arquivo = st.sidebar.selectbox("Selecione a sessão:", nomes, key="sessao_select")
     file_id = next(f['id'] for f in arquivos if f['name'] == nome_arquivo)
 else:
     st.sidebar.info("Nenhuma sessão encontrada.")
     nome_arquivo = None
     file_id = None
 
-placeholder = st.empty()
-
 if file_id:
     st.subheader(f"Sessão ativa: {nome_arquivo}")
     try:
         df = carregar_parquet_drive(file_id)
-        placeholder.dataframe(df, use_container_width=True)
+        st.dataframe(df, use_container_width=True)
     except Exception as e:
         st.error(f"Erro ao carregar o DataFrame: {e}")
 else:
