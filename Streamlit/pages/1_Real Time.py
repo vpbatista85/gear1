@@ -1,104 +1,62 @@
 import streamlit as st
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import requests
-import requests
-import json
-import os
+import io
+import time
+from streamlit_extras.st_autorefresh import st_autorefresh
 
-CONFIG_FILE = "config.json"
+# === Configurações ===
+SERVICE_ACCOUNT_FILE = 'C:/Users/vpb85/Documents/Gear1/gear1-ir-36de8419de96.json'
+SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+DRIVE_FOLDER_ID = '1Ix44ranjPTYSPMN6W9YhwXqQSCC94uRZ'
 
-def carregar_config():
-    """Carrega o IP salvo no arquivo config.json, se existir."""
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
-    return {}
+# === Autenticação ===
+@st.cache_resource(show_spinner=False)
+def criar_servico_drive():
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    return build('drive', 'v3', credentials=creds)
 
-def salvar_config(config):
-    """Salva o IP no arquivo config.json."""
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(config, f)
+drive_service = criar_servico_drive()
 
-def descobrir_ip():
-    """Tenta descobrir o IP do client local automaticamente."""
-    possiveis_ips = ["127.0.0.1", "localhost"]
-    for ip in possiveis_ips:
-        try:
-            response = requests.get(f"http://{ip}:5000/get_ip", timeout=3)
-            response.raise_for_status()
-            return response.json().get("ip")
-        except requests.exceptions.RequestException:
-            continue
-    return None
-st.set_page_config(
-    page_title="Gear 1 Real Time",
-    page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    # menu_items={
-    #     'Get Help': 'https://www.extremelycoolapp.com/help',
-    #     'Report a bug': "https://www.extremelycoolapp.com/bug",
-    #     'About': "# This is a header. This is an *extremely* cool app!"
-    # }
-)
-st.sidebar.image("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", width=128)
+# === Buscar arquivos com final _Live.parquet ===
+def listar_arquivos_parquet():
+    query = f"'{DRIVE_FOLDER_ID}' in parents and name contains '_Live.parquet' and trashed = false"
+    response = drive_service.files().list(q=query, fields="files(id, name)", pageSize=20).execute()
+    return response.get('files', [])
 
-# st.title(":green[EM CONSTRUÇÃO]")
+arquivos = listar_arquivos_parquet()
 
-# Carregar configuração salva
-config = carregar_config()
-ip_cliente = config.get("ip_cliente", "")
+st.title("Monitoramento de Sessão")
 
-# Se não houver IP salvo, tentar descobrir automaticamente
-if not ip_cliente:
-    st.write("🔄 Descobrindo o IP do client local...")
-    ip_cliente = descobrir_ip()
-    if ip_cliente:
-        config["ip_cliente"] = ip_cliente
-        salvar_config(config)
-        st.success(f"IP {ip_cliente} detectado e salvo!")
-    else:
-        st.error("❌ Não foi possível detectar o IP do client local.")
+if arquivos:
+    nomes = [arq['name'] for arq in arquivos]
+    nome_arquivo = st.selectbox("Selecione uma sessão:", nomes)
+    arquivo_id = next((arq['id'] for arq in arquivos if arq['name'] == nome_arquivo), None)
 
+    if arquivo_id:
+        # Fazer download do arquivo selecionado
+        request = drive_service.files().get_media(fileId=arquivo_id)
+        buffer = io.BytesIO()
+        downloader = MediaIoBaseDownload(buffer, request)
 
-# # URL do servidor Flask
-# FLASK_URL = "http://127.0.0.1:5000/dados"
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
 
-# st.title("📊 Dashboard de Dados")
+        buffer.seek(0)
+        df = pd.read_parquet(buffer)
 
-# st.write("🔄 Obtendo dados do servidor Flask...")
+        st.success(f"Exibindo dados de: {nome_arquivo}")
+        st.dataframe(df.tail(10))  # Exibe as 10 últimas linhas
 
-# # Fazer requisição ao servidor Flask
-# try:
-#     response = requests.get(FLASK_URL)
-#     response.raise_for_status()  # Lança erro se a resposta for ruim (ex: 404 ou 500)
-#     dados = response.json()  # Converte resposta para JSON
-    
-#     if isinstance(dados, list) and len(dados) > 0:
-#         df = pd.DataFrame(dados)  # Converte JSON para DataFrame
-#         st.write("✅ Dados carregados com sucesso!")
-#         st.dataframe(df)  # Exibe os dados como tabela no Streamlit
-#     else:
-#         st.warning("⚠️ Nenhum dado disponível no servidor Flask.")
-# except requests.exceptions.RequestException as e:
-#     st.error(f"❌ Erro ao conectar ao servidor Flask: {e}")
+        # # Atualiza a cada 3 segundos
+        # st.experimental_rerun()  # Essa chamada deve ser controlada para não gerar looping infinito
+        # Atualiza a cada 3 segundos (3000 milissegundos)
+        st_autorefresh(interval=1000, limit=None, key="auto-refresh")
 
-# Interface do Streamlit
-st.title("📊 Dashboard de Dados")
-
-if ip_cliente:
-    url_client = f"http://{ip_cliente}:5000/dados"
-    st.write("🔄 Obtendo dados do servidor Flask...")
-
-    try:
-        response = requests.get(url_client, timeout=5)
-        response.raise_for_status()
-        dados = response.json()
-        st.table(dados)
-    except requests.exceptions.RequestException as e:
-        st.error(f"❌ Erro ao conectar ao servidor Flask: {e}")
 else:
-    st.warning("⚠️ Nenhum IP detectado. Verifique se o client local está rodando.")
+    st.warning("Nenhuma sessão no momento.")
