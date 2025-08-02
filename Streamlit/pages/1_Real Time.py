@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
+import time
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from io import BytesIO
 from googleapiclient.http import MediaIoBaseDownload
+from datetime import datetime, timedelta
 
 # Autenticação com Google Drive
 service_account_info = st.secrets["google_service_account"]
@@ -15,15 +17,20 @@ def criar_servico_drive():
 
 drive_service = criar_servico_drive()
 
-# Função para buscar arquivos com "_Live.parquet" - limitando para 10 arquivos mais recentes
-def buscar_arquivos_live(limite=10):
+# Função para buscar arquivos com "_Live.parquet"
+@st.cache_data(ttl=30)
+def buscar_arquivos_live():
     query = "name contains '_Live.parquet' and mimeType='application/octet-stream'"
-    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)', pageSize=50).execute()
+    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)').execute()
     files = results.get('files', [])
-    if not files:
-        return []
-    files.sort(key=lambda x: x['modifiedTime'], reverse=True)
-    return files[:limite]
+    # Eliminar arquivos com mesmo nome
+    arquivos_unicos = {}
+    for f in files:
+        nome = f["name"]
+        if nome not in arquivos_unicos or f["modifiedTime"] > arquivos_unicos[nome]["modifiedTime"]:
+            arquivos_unicos[nome] = f
+    # Ordenar por data
+    return sorted(arquivos_unicos.values(), key=lambda x: x["modifiedTime"], reverse=True)
 
 # Função para baixar o arquivo do Drive
 def carregar_parquet_drive(file_id):
@@ -34,42 +41,44 @@ def carregar_parquet_drive(file_id):
     while not done:
         status, done = downloader.next_chunk()
     fh.seek(0)
-    # Forçar o recarregamento do DataFrame sempre que o arquivo for baixado
     return pd.read_parquet(fh)
+
+# --- Interface ---
+st.sidebar.title("Configuração")
+arquivos = buscar_arquivos_live()
+opcoes = [f'{f["name"]} - {f["modifiedTime"]}' for f in arquivos]
+arquivo_selecionado = st.sidebar.selectbox("Selecione a sessão", opcoes)
 
 st.title("Monitoramento em Tempo Real")
 
-# Intervalo em segundos para atualizar
-INTERVALO_ATUALIZACAO = 3
+# Encontrar o ID do arquivo selecionado
+file_id = None
+for f in arquivos:
+    nome_opcao = f'{f["name"]} - {f["modifiedTime"]}'
+    if nome_opcao == arquivo_selecionado:
+        file_id = f["id"]
+        break
 
-# Buscar arquivos A CADA carga da página para atualizar a lista
-arquivos = buscar_arquivos_live()
+INTERVALO_ATUALIZACAO = st.sidebar.slider("Intervalo de atualização (seg)", 5, 60, 10)
 
-if arquivos:
-    nomes = [f['name'] for f in arquivos]
-    # Usar key para preservar a seleção entre atualizações
-    nome_arquivo = st.sidebar.selectbox("Selecione a sessão:", nomes, key="sessao_select")
-    file_id = next(f['id'] for f in arquivos if f['name'] == nome_arquivo)
-else:
-    st.sidebar.info("Nenhuma sessão encontrada.")
-    nome_arquivo = None
-    file_id = None
+placeholder = st.empty()
 
-if file_id:
-    st.subheader(f"Sessão ativa: {nome_arquivo}")
-    try:
-        df = carregar_parquet_drive(file_id)
-        st.dataframe(df, use_container_width=True)
-    except Exception as e:
-        st.error(f"Erro ao carregar o DataFrame: {e}")
-else:
-    st.info("Nenhuma sessão no momento.")
+ultima_leitura = None
 
-# Auto refresh usando JS (recarrega a página a cada INTERVALO_ATUALIZACAO segundos)
-st.markdown(f"""
-    <script>
-        setTimeout(() => {{
-            window.location.reload();
-        }}, {INTERVALO_ATUALIZACAO * 1000});
-    </script>
-""", unsafe_allow_html=True)
+while True:
+    with placeholder.container():
+        if file_id:
+            try:
+                df = carregar_parquet_drive(file_id)
+                # Verifica se o conteúdo mudou
+                if ultima_leitura is None or not df.equals(ultima_leitura):
+                    st.subheader(f"Arquivo: {arquivo_selecionado}")
+                    st.dataframe(df, use_container_width=True)
+                    ultima_leitura = df
+                else:
+                    st.info("Nenhuma nova atualização no arquivo.")
+            except Exception as e:
+                st.error(f"Erro ao carregar o DataFrame: {e}")
+        else:
+            st.warning("Nenhum arquivo selecionado.")
+    time.sleep(INTERVALO_ATUALIZACAO)
