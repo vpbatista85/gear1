@@ -1,44 +1,85 @@
 import streamlit as st
 import pandas as pd
-import os
 import time
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from io import BytesIO
+from googleapiclient.http import MediaIoBaseDownload
 
-# Atualização automática da página a cada 5 segundos
-st.markdown("""
-    <meta http-equiv="refresh" content="5">
-""", unsafe_allow_html=True)
+# Autenticação com Google Drive
+service_account_info = st.secrets["google_service_account"]
+creds = service_account.Credentials.from_service_account_info(service_account_info)
 
-# Função para ler os arquivos do Google Drive montado
-def listar_arquivos_pasta(caminho):
-    return [f for f in os.listdir(caminho) if f.endswith(".parquet")]
+@st.cache_resource(show_spinner=False)
+def criar_servico_drive():
+    return build('drive', 'v3', credentials=creds)
 
-# Caminho onde os arquivos .parquet estão armazenados no Google Drive
-caminho_arquivos = "/mount/drive/MyDrive/seu_diretorio"
+drive_service = criar_servico_drive()
 
-# Lista de arquivos
-nomes = listar_arquivos_pasta(caminho_arquivos)
+# Função para listar todos os arquivos com "_Live.parquet"
+def listar_arquivos_live():
+    query = "name contains '_Live.parquet' and mimeType='application/octet-stream' and trashed = false"
+    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)').execute()
+    files = results.get('files', [])
+    # Ordenar pelo último modificado
+    files.sort(key=lambda x: x['modifiedTime'], reverse=True)
+    return files
 
-# Verifica se há arquivos
-if not nomes:
-    st.warning("Nenhum arquivo encontrado no Google Drive.")
+# Função para baixar o arquivo do Drive
+def carregar_parquet_drive(file_id):
+    request = drive_service.files().get_media(fileId=file_id)
+    fh = BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+    fh.seek(0)
+    return pd.read_parquet(fh)
+
+st.title("Monitoramento em Tempo Real")
+
+placeholder = st.empty()
+
+# Atualiza a cada 10 segundos
+INTERVALO_ATUALIZACAO = 10
+
+arquivos = listar_arquivos_live()
+
+if not arquivos:
+    st.info("Nenhuma sessão no momento.")
     st.stop()
 
-# Inicializa o session_state com o nome do primeiro arquivo
-if "nome_arquivo" not in st.session_state:
-    st.session_state.nome_arquivo = nomes[0]
+nomes = [f['name'] for f in arquivos]
 
-# Caixa de seleção na barra lateral
-nome_arquivo = st.sidebar.selectbox(
-    "Selecione uma sessão:",
+# Mantém a escolha do arquivo entre atualizações
+if 'arquivo_selecionado' not in st.session_state:
+    st.session_state.arquivo_selecionado = nomes[0]
+
+# Coloca o selectbox na sidebar
+arquivo_escolhido = st.sidebar.selectbox(
+    "Selecione a sessão:",
     nomes,
-    index=nomes.index(st.session_state.nome_arquivo) if st.session_state.nome_arquivo in nomes else 0
+    index=nomes.index(st.session_state.arquivo_selecionado) if st.session_state.arquivo_selecionado in nomes else 0
 )
-st.session_state.nome_arquivo = nome_arquivo
 
-# Lê o arquivo selecionado
-caminho_completo = os.path.join(caminho_arquivos, nome_arquivo)
-df = pd.read_parquet(caminho_completo)
+st.session_state.arquivo_selecionado = arquivo_escolhido
 
-# Exibe o DataFrame
-st.write(f"### Dados da sessão: `{nome_arquivo}`")
-st.dataframe(df)
+# Loop de atualização manual porque Streamlit não gosta de while True em scripts normais.
+# Em vez disso, vamos usar o st_autorefresh ou meta refresh.
+# Mas para manter parecido com o seu, podemos usar um loop simulado via st_autorefresh.
+
+# Importa a função para autorefresh
+from streamlit_extras.st_autorefresh import st_autorefresh
+
+# Atualiza a página a cada INTERVALO_ATUALIZACAO segundos
+st_autorefresh(interval=INTERVALO_ATUALIZACAO * 1000, key="auto_refresh")
+
+# Busca o file_id do arquivo selecionado
+file_id = next((f['id'] for f in arquivos if f['name'] == arquivo_escolhido), None)
+
+with placeholder.container():
+    st.subheader(f"Sessão ativa: {arquivo_escolhido}")
+    try:
+        df = carregar_parquet_drive(file_id)
+        st.dataframe(df, use_container_width=True)
+    except Excep
