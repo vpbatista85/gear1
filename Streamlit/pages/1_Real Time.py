@@ -41,7 +41,7 @@ st.title("Monitoramento em Tempo Real")
 placeholder = st.empty()
 
 # Atualiza a cada 10 segundos
-INTERVALO_ATUALIZACAO = 10
+INTERVALO_ATUALIZACAO = 1
 
 arquivos = buscar_arquivos_live()
 if arquivos:
