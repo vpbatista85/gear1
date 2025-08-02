@@ -82,4 +82,5 @@ with placeholder.container():
     try:
         df = carregar_parquet_drive(file_id)
         st.dataframe(df, use_container_width=True)
-    except Excep
+    except Exception as e:
+        st.error(f"Erro ao carregar o DataFrame: {e}")
