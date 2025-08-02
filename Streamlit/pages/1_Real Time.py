@@ -1,60 +1,44 @@
 import streamlit as st
 import pandas as pd
+import os
 import time
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from io import BytesIO
-from googleapiclient.http import MediaIoBaseDownload
 
-# Autenticação com Google Drive
-service_account_info = st.secrets["google_service_account"]
-creds = service_account.Credentials.from_service_account_info(service_account_info)
+# Atualização automática da página a cada 5 segundos
+st.markdown("""
+    <meta http-equiv="refresh" content="5">
+""", unsafe_allow_html=True)
 
-@st.cache_resource(show_spinner=False)
-def criar_servico_drive():
-    return build('drive', 'v3', credentials=creds)
+# Função para ler os arquivos do Google Drive montado
+def listar_arquivos_pasta(caminho):
+    return [f for f in os.listdir(caminho) if f.endswith(".parquet")]
 
-drive_service = criar_servico_drive()
+# Caminho onde os arquivos .parquet estão armazenados no Google Drive
+caminho_arquivos = "/mount/drive/MyDrive/seu_diretorio"
 
-# Função para buscar o arquivo mais recente com "_Live.parquet"
-def buscar_arquivo_live():
-    query = "name contains '_Live.parquet' and mimeType='application/octet-stream'"
-    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)').execute()
-    files = results.get('files', [])
-    if not files:
-        return None, None
-    # Ordenar pelo último modificado
-    files.sort(key=lambda x: x['modifiedTime'], reverse=True)
-    return files[0]['id'], files[0]['name']
+# Lista de arquivos
+nomes = listar_arquivos_pasta(caminho_arquivos)
 
-# Função para baixar o arquivo do Drive
-def carregar_parquet_drive(file_id):
-    request = drive_service.files().get_media(fileId=file_id)
-    fh = BytesIO()
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while not done:
-        status, done = downloader.next_chunk()
-    fh.seek(0)
-    return pd.read_parquet(fh)
+# Verifica se há arquivos
+if not nomes:
+    st.warning("Nenhum arquivo encontrado no Google Drive.")
+    st.stop()
 
-st.title("Monitoramento em Tempo Real")
+# Inicializa o session_state com o nome do primeiro arquivo
+if "nome_arquivo" not in st.session_state:
+    st.session_state.nome_arquivo = nomes[0]
 
-placeholder = st.empty()
+# Caixa de seleção na barra lateral
+nome_arquivo = st.sidebar.selectbox(
+    "Selecione uma sessão:",
+    nomes,
+    index=nomes.index(st.session_state.nome_arquivo) if st.session_state.nome_arquivo in nomes else 0
+)
+st.session_state.nome_arquivo = nome_arquivo
 
-# Atualiza a cada 2 segundos
-INTERVALO_ATUALIZACAO = 2
+# Lê o arquivo selecionado
+caminho_completo = os.path.join(caminho_arquivos, nome_arquivo)
+df = pd.read_parquet(caminho_completo)
 
-while True:
-    with placeholder.container():
-        file_id, nome_arquivo = buscar_arquivo_live()
-        if file_id:
-            st.subheader(f"Sessão ativa: {nome_arquivo}")
-            try:
-                df = carregar_parquet_drive(file_id)
-                st.dataframe(df, use_container_width=True)
-            except Exception as e:
-                st.error(f"Erro ao carregar o DataFrame: {e}")
-        else:
-            st.info("Nenhuma sessão no momento.")
-    time.sleep(INTERVALO_ATUALIZACAO)
+# Exibe o DataFrame
+st.write(f"### Dados da sessão: `{nome_arquivo}`")
+st.dataframe(df)
