@@ -16,9 +16,9 @@ def criar_servico_drive():
 
 drive_service = criar_servico_drive()
 
-# Função para listar todos os arquivos com "_Live.parquet"
-def listar_arquivos_live():
-    query = "name contains '_Live.parquet' and mimeType='application/octet-stream' and trashed = false"
+# Função para buscar arquivos com "_Live.parquet"
+def buscar_arquivos_live():
+    query = "name contains '_Live.parquet' and mimeType='application/octet-stream'"
     results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name, modifiedTime)').execute()
     files = results.get('files', [])
     # Ordenar pelo último modificado
@@ -36,62 +36,32 @@ def carregar_parquet_drive(file_id):
     fh.seek(0)
     return pd.read_parquet(fh)
 
-def auto_refresh(interval_sec):
-    st.markdown(
-        f"""
-        <script>
-            setTimeout(function() {{
-                window.location.reload();
-            }}, {interval_sec * 1000});
-        </script>
-        """,
-        unsafe_allow_html=True,
-    )
-
 st.title("Monitoramento em Tempo Real")
 
 placeholder = st.empty()
 
 # Atualiza a cada 10 segundos
-INTERVALO_ATUALIZACAO = 1
+INTERVALO_ATUALIZACAO = 10
 
-arquivos = listar_arquivos_live()
+arquivos = buscar_arquivos_live()
+if arquivos:
+    nomes = [f['name'] for f in arquivos]
+    # Seleção do arquivo na sidebar
+    nome_arquivo = st.sidebar.selectbox("Selecione a sessão:", nomes)
+    file_id = next(f['id'] for f in arquivos if f['name'] == nome_arquivo)
+else:
+    nome_arquivo = None
+    file_id = None
 
-if not arquivos:
-    st.info("Nenhuma sessão no momento.")
-    st.stop()
-
-nomes = [f['name'] for f in arquivos]
-
-# Mantém a escolha do arquivo entre atualizações
-if 'arquivo_selecionado' not in st.session_state:
-    st.session_state.arquivo_selecionado = nomes[0]
-
-# Coloca o selectbox na sidebar
-arquivo_escolhido = st.sidebar.selectbox(
-    "Selecione a sessão:",
-    nomes,
-    index=nomes.index(st.session_state.arquivo_selecionado) if st.session_state.arquivo_selecionado in nomes else 0
-)
-
-st.session_state.arquivo_selecionado = arquivo_escolhido
-
-# Loop de atualização manual porque Streamlit não gosta de while True em scripts normais.
-# Em vez disso, vamos usar o st_autorefresh ou meta refresh.
-# Mas para manter parecido com o seu, podemos usar um loop simulado via st_autorefresh.
-
-
-# Atualiza a página a cada INTERVALO_ATUALIZACAO segundos
-# Auto refresh via JavaScript a cada INTERVALO_ATUALIZACAO segundos
-auto_refresh(INTERVALO_ATUALIZACAO)
-
-# Busca o file_id do arquivo selecionado
-file_id = next((f['id'] for f in arquivos if f['name'] == arquivo_escolhido), None)
-
-with placeholder.container():
-    st.subheader(f"Sessão ativa: {arquivo_escolhido}")
-    try:
-        df = carregar_parquet_drive(file_id)
-        st.dataframe(df, use_container_width=True)
-    except Exception as e:
-        st.error(f"Erro ao carregar o DataFrame: {e}")
+while True:
+    with placeholder.container():
+        if file_id:
+            st.subheader(f"Sessão ativa: {nome_arquivo}")
+            try:
+                df = carregar_parquet_drive(file_id)
+                st.dataframe(df, use_container_width=True)
+            except Exception as e:
+                st.error(f"Erro ao carregar o DataFrame: {e}")
+        else:
+            st.info("Nenhuma sessão no momento.")
+    time.sleep(INTERVALO_ATUALIZACAO)
