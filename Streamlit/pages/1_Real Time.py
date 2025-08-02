@@ -80,8 +80,6 @@ st.session_state.arquivo_selecionado = arquivo_escolhido
 # Em vez disso, vamos usar o st_autorefresh ou meta refresh.
 # Mas para manter parecido com o seu, podemos usar um loop simulado via st_autorefresh.
 
-# Importa a função para autorefresh
-from streamlit_extras.st_autorefresh import st_autorefresh
 
 # Atualiza a página a cada INTERVALO_ATUALIZACAO segundos
 # Auto refresh via JavaScript a cada INTERVALO_ATUALIZACAO segundos
