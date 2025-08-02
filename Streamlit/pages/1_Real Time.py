@@ -36,6 +36,18 @@ def carregar_parquet_drive(file_id):
     fh.seek(0)
     return pd.read_parquet(fh)
 
+def auto_refresh(interval_sec):
+    st.markdown(
+        f"""
+        <script>
+            setTimeout(function() {{
+                window.location.reload();
+            }}, {interval_sec * 1000});
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
+
 st.title("Monitoramento em Tempo Real")
 
 placeholder = st.empty()
@@ -72,7 +84,8 @@ st.session_state.arquivo_selecionado = arquivo_escolhido
 from streamlit_extras.st_autorefresh import st_autorefresh
 
 # Atualiza a página a cada INTERVALO_ATUALIZACAO segundos
-st_autorefresh(interval=INTERVALO_ATUALIZACAO * 1000, key="auto_refresh")
+# Auto refresh via JavaScript a cada INTERVALO_ATUALIZACAO segundos
+auto_refresh(INTERVALO_ATUALIZACAO)
 
 # Busca o file_id do arquivo selecionado
 file_id = next((f['id'] for f in arquivos if f['name'] == arquivo_escolhido), None)
