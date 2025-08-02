@@ -20,19 +20,6 @@ def criar_servico_drive():
 
 drive_service = criar_servico_drive()
 
-# === Auto refresh via JS ===
-def auto_refresh(interval_ms=3000):
-    st.markdown(f"""
-        <script>
-            setTimeout(function(){{
-                window.location.reload(1);
-            }}, {interval_ms});
-        </script>
-    """, unsafe_allow_html=True)
-
-# Atualiza a página a cada 3 segundos
-auto_refresh(1000)
-
 # === Buscar arquivos com final _Live.parquet ===
 def listar_arquivos_parquet():
     query = f"'{DRIVE_FOLDER_ID}' in parents and name contains '_Live.parquet' and trashed = false"
@@ -65,3 +52,15 @@ if arquivos:
         st.dataframe(df.tail(10))  # Exibe as 10 últimas linhas
 else:
     st.warning("Nenhuma sessão no momento.")
+
+# === Auto refresh via JS ===
+def auto_refresh(interval_ms=3000):
+    st.markdown(f"""
+        <script>
+            setTimeout(function(){{
+                window.location.reload(1);
+            }}, {interval_ms});
+        </script>
+    """, unsafe_allow_html=True)
+
+auto_refresh(3000)
