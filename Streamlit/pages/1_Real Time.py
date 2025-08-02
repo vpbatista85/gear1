@@ -6,13 +6,11 @@ import pandas as pd
 import io
 
 # === Configurações ===
-# SERVICE_ACCOUNT_FILE = 'C:/Users/vpb85/Documents/Gear1/gear1-ir-36de8419de96.json'
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 DRIVE_FOLDER_ID = '1Ix44ranjPTYSPMN6W9YhwXqQSCC94uRZ'
 
 # === Autenticação ===
 service_account_info = st.secrets["google_service_account"]
-
 creds = service_account.Credentials.from_service_account_info(service_account_info)
 
 @st.cache_resource(show_spinner=False)
@@ -22,6 +20,7 @@ def criar_servico_drive():
 drive_service = criar_servico_drive()
 
 # === Buscar arquivos com final _Live.parquet ===
+@st.cache_data(ttl=3)  # Revalida a lista de arquivos a cada 3 segundos
 def listar_arquivos_parquet():
     query = f"'{DRIVE_FOLDER_ID}' in parents and name contains '_Live.parquet' and trashed = false"
     response = drive_service.files().list(q=query, fields="files(id, name)", pageSize=20).execute()
@@ -36,8 +35,8 @@ if arquivos:
     nome_arquivo = st.selectbox("Selecione uma sessão:", nomes)
     arquivo_id = next((arq['id'] for arq in arquivos if arq['name'] == nome_arquivo), None)
 
-    if arquivo_id:
-        # Fazer download do arquivo selecionado
+    @st.cache_data(ttl=3)  # Recarrega o parquet a cada 3 segundos
+    def carregar_parquet(arquivo_id):
         request = drive_service.files().get_media(fileId=arquivo_id)
         buffer = io.BytesIO()
         downloader = MediaIoBaseDownload(buffer, request)
@@ -47,8 +46,10 @@ if arquivos:
             status, done = downloader.next_chunk()
 
         buffer.seek(0)
-        df = pd.read_parquet(buffer)
+        return pd.read_parquet(buffer)
 
+    if arquivo_id:
+        df = carregar_parquet(arquivo_id)
         st.success(f"Exibindo dados de: {nome_arquivo}")
         st.dataframe(df.tail(10))  # Exibe as 10 últimas linhas
 else:
