@@ -4,8 +4,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import pandas as pd
 import io
-import time
-from streamlit_extras.st_autorefresh import st_autorefresh
 
 # === Configurações ===
 SERVICE_ACCOUNT_FILE = 'C:/Users/vpb85/Documents/Gear1/gear1-ir-36de8419de96.json'
@@ -21,6 +19,19 @@ def criar_servico_drive():
     return build('drive', 'v3', credentials=creds)
 
 drive_service = criar_servico_drive()
+
+# === Auto refresh via JS ===
+def auto_refresh(interval_ms=3000):
+    st.markdown(f"""
+        <script>
+            setTimeout(function(){{
+                window.location.reload(1);
+            }}, {interval_ms});
+        </script>
+    """, unsafe_allow_html=True)
+
+# Atualiza a página a cada 3 segundos
+auto_refresh(1000)
 
 # === Buscar arquivos com final _Live.parquet ===
 def listar_arquivos_parquet():
@@ -52,11 +63,5 @@ if arquivos:
 
         st.success(f"Exibindo dados de: {nome_arquivo}")
         st.dataframe(df.tail(10))  # Exibe as 10 últimas linhas
-
-        # # Atualiza a cada 3 segundos
-        # st.experimental_rerun()  # Essa chamada deve ser controlada para não gerar looping infinito
-        # Atualiza a cada 3 segundos (3000 milissegundos)
-        st_autorefresh(interval=1000, limit=None, key="auto-refresh")
-
 else:
     st.warning("Nenhuma sessão no momento.")
