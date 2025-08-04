@@ -51,10 +51,17 @@ CpuUsageFG                        Percent of available tim fg thread took with a
 DCDriversSoFar                    Number of team drivers who have run a stint,
 DCLapStatus                       Status of driver change lap requirements,
 dcPitSpeedLimiterToggle           Track if pit speed limiter system is enabled,
+dcAntiRollFront
+dcAntiRollRear
+dcBrakeBias
+dcMGUKDeployMode
 dcStarter                         In car trigger car starter,
 dcToggleWindshieldWipers          In car turn wipers on or off,
 dcTriggerWindshieldWipers         In car momentarily turn on wipers,
 DisplayUnits                      Default units for the user interface 0 = english 1 = metric,
+dcTractionControl
+dcTractionControl2
+dcTractionControlToggle
 dpFastRepair                      Pitstop fast repair set,
 dpFuelAddKg                       Pitstop fuel add amount, kg
 dpFuelAutoFillActive              Pitstop auto fill fuel next stop flag,
