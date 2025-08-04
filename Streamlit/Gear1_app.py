@@ -10,24 +10,24 @@ import os
 import requests
 
 
-# Se estiver rodando no Windows, importe o pywin32
-if sys.platform == "win32":
-    import win32com.client
+# # Se estiver rodando no Windows, importe o pywin32
+# if sys.platform == "win32":
+#     import win32com.client
 
-IP_FILE = "client_ip.json"  # Arquivo para armazenar o IP do client
+# IP_FILE = "client_ip.json"  # Arquivo para armazenar o IP do client
 
-# Função para salvar o IP do client no arquivo JSON
-def salvar_ip(ip):
-    with open(IP_FILE, "w") as f:
-        json.dump({"ip": ip}, f)
+# # Função para salvar o IP do client no arquivo JSON
+# def salvar_ip(ip):
+#     with open(IP_FILE, "w") as f:
+#         json.dump({"ip": ip}, f)
 
-# Função para carregar o IP salvo
-def carregar_ip():
-    if os.path.exists(IP_FILE):
-        with open(IP_FILE, "r") as f:
-            data = json.load(f)
-            return data.get("ip")
-    return None
+# # Função para carregar o IP salvo
+# def carregar_ip():
+#     if os.path.exists(IP_FILE):
+#         with open(IP_FILE, "r") as f:
+#             data = json.load(f)
+#             return data.get("ip")
+#     return None
 
 
 
