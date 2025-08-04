@@ -448,8 +448,9 @@ def balancear_dataset(df, metodo):
     return df_balanceado
 
 def main():
+    st.logo("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png",size="large")
     st.set_page_config(page_title="Gear 1 Post Race", page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", layout="wide")
-    st.sidebar.image("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", width=128)
+    # st.sidebar.image("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", width=128)
     st.title(":green[Análise Pós Evento]")
 
     uploaded_files = st.sidebar.file_uploader(":green[Escolha um ou mais arquivos Excel]", type=["xlsx"], accept_multiple_files=True)
