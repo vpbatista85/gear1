@@ -9,20 +9,31 @@ import re
 import polars as pl
 import pyarrow.parquet as pq
 import time
+import json
+from google.oauth2 import service_account
+import os
 
 # --- CONFIGURAÇÕES INICIAIS ---
 st.logo("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png",size="large")
 st.set_page_config(page_title="Monitor Live", layout="wide")
-st.set_page_config(page_title="Gear 1 Post Race", page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", layout="wide")
+st.set_page_config(page_title="Gear 1 Live Race", page_icon="https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", layout="wide")
 # st.sidebar.image("https://gear1.gg/wp-content/uploads/2022/11/Cabecalho.png", width=128)
 st.title(":green[Análise Ao Vivo]")
 
 # --- AUTENTICAÇÃO COM GOOGLE DRIVE ---
-service_account_info = st.secrets["google_service_account"]
-creds = service_account.Credentials.from_service_account_info(service_account_info)
+# service_account_info = st.secrets["google_service_account"]
+
+# Caminho absoluto do arquivo gear1_cred.json
+current_dir = os.path.dirname(__file__)
+json_path = os.path.join(current_dir, "gear1_cred.json")
+
+with open(json_path) as source:
+    service_account_info = json.load(source)
+
+credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
 def criar_servico_drive():
-    return build('drive', 'v3', credentials=creds)
+    return build('drive', 'v3', credentials=credentials)
 
 drive_service = criar_servico_drive()
 
@@ -113,6 +124,41 @@ def carregar_parquet_drive_polars(file_id, drive_service):
         st.error(f"Erro ao carregar o DataFrame: {e}")
         return None
     
+def preparar_lazyframe_para_analise(
+    lf: pl.LazyFrame, 
+    colunas_explodir: list[str], 
+    colunas_manter: list[str]
+) -> pl.DataFrame:
+    try:
+        print("Ordenando e limitando linhas...")
+        lf_reduzido = lf.sort("timestamp", descending=True).limit(2)
+
+        print("Coletando schema...")
+        schema = lf_reduzido.schema
+        print("Schema coletado com sucesso.")
+
+        # Explodir apenas as colunas que existem no schema
+        for coluna in colunas_explodir:
+            if coluna in schema:
+                print(f"Explodindo coluna: {coluna}")
+                lf_reduzido = lf_reduzido.explode(coluna)
+            else:
+                print(f"Coluna {coluna} não está presente no schema, pulando...")
+
+        # Selecionar apenas as colunas desejadas (que existirem no schema)
+        colunas_validas = [col for col in colunas_manter if col in lf_reduzido.schema]
+        print(f"Selecionando colunas: {colunas_validas}")
+        lf_reduzido = lf_reduzido.select(colunas_validas)
+
+        print("Coletando DataFrame final...")
+        df_final = lf_reduzido.collect()
+        print("DataFrame carregado com sucesso.")
+        return df_final
+
+    except Exception as e:
+        print(f"Erro ao preparar LazyFrame: {e}")
+        raise
+    
 # --- SIDEBAR ---
 
 st.sidebar.title("Sessões")
@@ -156,51 +202,73 @@ file_id = next((f["id"] for f in arquivos if f["name"] == arquivo_selecionado), 
 #     st.warning("Nenhum arquivo selecionado.")
 
 # --- CARREGAR E EXIBIR ---
-# --- CARREGAR E EXIBIR ---
 if file_id:
     try:
-        # Carrega diretamente como Polars LazyFrame
-        lf = carregar_parquet_drive_polars(file_id, drive_service)  # ✅ Agora tem o drive_service
-        if lf is None:
-            st.error("LazyFrame não pôde ser carregado.")
-            st.stop()
-        st.write("LazyFrame carregado. Coletando schema...")
-
-        colunas_lista = [
-            "CarIdxPosition", "CarIdxBestLapNum", "CarIdxBestLapTime", "CarIdxClass",
-            "CarIdxClassPosition", "CarIdxEstTime", "CarIdxF2Time", "CarIdxFastRepairsUsed",
-            "CarIdxGear", "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct",
-            "CarIdxLastLapTime", "CarIdxOnPitRoad", "CarIdxP2P_Count", "CarIdxP2P_Status",
-            "CarIdxPaceFlags", "CarIdxPaceLine", "CarIdxPaceRow", "CarIdxQualTireCompound",
-            "CarIdxQualTireCompoundLocked", "CarIdxRPM", "CarIdxSessionFlags", "CarIdxSteer",
-            "CarIdxTireCompound", "CarIdxTrackSurface", "CarIdxTrackSurfaceMaterial"
+        # # Carrega diretamente como Polars LazyFrame
+        # lf = carregar_parquet_drive_polars(file_id, drive_service)
+        # if lf is None:
+        #     st.error("LazyFrame não pôde ser carregado.")
+        #     st.stop()
+        colunas_explodir = [
+             "CarIdxPosition", "CarIdxBestLapNum", "CarIdxBestLapTime",
+            #  "CarIdxClassPosition", "CarIdxEstTime", "CarIdxF2Time",
+            #  "CarIdxGear", "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct",
+            #  "CarIdxLastLapTime", "CarIdxOnPitRoad", "CarIdxRPM", "CarIdxSessionFlags", "CarIdxSteer",
+            #  "CarIdxTireCompound"
         ]
+        
+        colunas_manter = [
+             "CarIdxPosition", "CarIdxBestLapNum", "CarIdxBestLapTime",
+            #  "CarIdxClassPosition", "CarIdxEstTime", "CarIdxF2Time",
+            #  "CarIdxGear", "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct",
+            #  "CarIdxLastLapTime", "CarIdxOnPitRoad", "CarIdxRPM", "CarIdxSessionFlags", "CarIdxSteer",
+            #  "CarIdxTireCompound"
+        ]
+    
 
-        # Coleta o schema do LazyFrame de forma segura
-        schema = lf.collect_schema()
-        st.write("Schema coletado com sucesso.")
+        # st.write("LazyFrame carregado. Coletando schema...")
+        with st.spinner("Carregando arquivo do Google Drive..."):
+            lf = carregar_parquet_drive_polars(file_id, drive_service)
 
-        # Explode as colunas que forem listas
-        for col in colunas_lista:
-            if col in schema and isinstance(schema[col], pl.List):
-                st.write(f"Explodindo coluna: {col}")
-                lf = lf.explode(col)
+            if lf is not None:
+                
+                df = preparar_lazyframe_para_analise(lf, colunas_explodir, colunas_manter)
 
-        # Executa o LazyFrame (materializa em DataFrame)
-        colunas_utilizadas = ['CarIdxPosition', 'CarIdxLap', 'CarIdxPosition', 'CarIdxLastLapTime']  # exemplo
-        lf = lf.select(colunas_utilizadas)
-        st.write("Coletando DataFrame final...")
+                if df is not None and not df.is_empty():
+                    st.success("Arquivo carregado com sucesso!")
+                    st.dataframe(df.head(64))  # Ou qualquer outro processamento com `df`
+                    # st.dataframe(df)
+                else:
+                    st.warning("DataFrame vazio ou erro durante preparação.")
+            else:
+                st.error("Erro ao carregar LazyFrame do Parquet.")
 
-        df_pl = lf.limit(30).collect()
+        # Define colunas que serão explodidas se existirem
+        # colunas_lista = [
+        #     "CarIdxPosition", "CarIdxBestLapNum", "CarIdxBestLapTime", "CarIdxClass",
+        #     "CarIdxClassPosition", "CarIdxEstTime", "CarIdxF2Time", "CarIdxFastRepairsUsed",
+        #     "CarIdxGear", "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct",
+        #     "CarIdxLastLapTime", "CarIdxOnPitRoad", "CarIdxP2P_Count", "CarIdxP2P_Status",
+        #     "CarIdxPaceFlags", "CarIdxPaceLine", "CarIdxPaceRow", "CarIdxQualTireCompound",
+        #     "CarIdxQualTireCompoundLocked", "CarIdxRPM", "CarIdxSessionFlags", "CarIdxSteer",
+        #     "CarIdxTireCompound", "CarIdxTrackSurface", "CarIdxTrackSurfaceMaterial"
+        # ]
 
-        st.write("DataFrame coletado!")
+        # colunas_lista = [
+        #     "CarIdxPosition", "CarIdxBestLapNum"
+        # ]
 
-        # Ordena pela primeira coluna (timestamp, por exemplo), se necessário
-        df_pl = df_pl.sort(df_pl.columns[0], descending=True)
+        # # Aplica o pipeline otimizado
+        # df_pl = preparar_lazyframe_para_analise(lf, colunas_lista)
 
-        # Converte para pandas para exibir no Streamlit
-        df_final = df_pl.to_pandas()
-        st.dataframe(df_final, use_container_width=True)
+        # if df_pl is None:
+        #     st.error("Falha ao preparar o DataFrame.")
+        #     st.stop()
+
+        # # Converte para pandas para exibir no Streamlit
+        # df_final = df_pl.to_pandas()
+        # st.write("DataFrame final coletado:")
+        # st.dataframe(df_final, use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao carregar o DataFrame: {e}")

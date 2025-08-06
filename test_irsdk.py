@@ -197,7 +197,7 @@ def main():
 
     var_list=['AirDensity', 'AirPressure', 'AirTemp', 'Brake', 'BrakeABSactive', 
     'BrakeRaw', 'CamCameraNumber', 'CamCameraState', 'CamCarIdx', 'CamGroupNumber',
-    'CarDistAhead', 'CarDistBehind', 'CarIdxBestLapNum', 'CarIdxBestLapTime', 'CarIdxClass', 
+    'CarDistAhead', 'CarDistBehind', 'CarIdxBestLapNum', 'CarIdxBestLapTime', 'CarIdxClass','CarIdx',
     'CarIdxClassPosition', 'CarIdxEstTime', 'CarIdxF2Time', 'CarIdxFastRepairsUsed', 
     'CarIdxGear', 'CarIdxLap', 'CarIdxLapCompleted', 'CarIdxLapDistPct', 'CarIdxLastLapTime',
     'CarIdxOnPitRoad', 'CarIdxP2P_Count', 'CarIdxP2P_Status', 'CarIdxPaceFlags', 'CarIdxPaceLine',
