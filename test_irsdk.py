@@ -9,6 +9,24 @@ import datetime
 import unicodedata
 import re
 import psutil
+import json
+import paho.mqtt.client as mqtt
+
+# === Configuração MQTT ===
+MQTT_BROKER = "localhost"  # ou IP da outra máquina se ela for o "broker"
+MQTT_PORT = 1883
+MQTT_TOPIC = "gear1/telemetria"
+
+# Criação do client MQTT
+mqtt_client = mqtt.Client()
+
+def conectar_mqtt():
+    try:
+        mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        mqtt_client.loop_start()
+        print(f"[MQTT] Conectado ao broker em {MQTT_BROKER}:{MQTT_PORT}")
+    except Exception as e:
+        print(f"[MQTT] Falha ao conectar ao broker MQTT: {e}")
 
 # === Configurações ===
 SERVICE_ACCOUNT_FILE = 'C:/Users/vpb85/Documents/Gear1/gear1-ir-36de8419de96.json'
@@ -176,10 +194,12 @@ def delete_file_from_drive_by_name(service, file_name, folder_id):
 # var_list=['AirDensity', 'AirPressure', 'AirTemp', 'Brake', 'BrakeABSactive', 'BrakeRaw', 'CamCameraNumber', 'CamCameraState', 'CamCarIdx', 'CamGroupNumber', 'CarDistAhead', 'CarDistBehind', 'CarIdxBestLapNum', 'CarIdxBestLapTime', 'CarIdxClass', 'CarIdxClassPosition', 'CarIdxEstTime', 'CarIdxF2Time', 'CarIdxFastRepairsUsed', 'CarIdxGear', 'CarIdxLap', 'CarIdxLapCompleted', 'CarIdxLapDistPct', 'CarIdxLastLapTime', 'CarIdxOnPitRoad', 'CarIdxP2P_Count', 'CarIdxP2P_Status', 'CarIdxPaceFlags', 'CarIdxPaceLine', 'CarIdxPaceRow', 'CarIdxPosition', 'CarIdxQualTireCompound', 'CarIdxQualTireCompoundLocked', 'CarIdxRPM', 'CarIdxSessionFlags', 'CarIdxSteer', 'CarIdxTireCompound', 'CarIdxTrackSurface', 'CarIdxTrackSurfaceMaterial', 'CarLeftRight', 'ChanAvgLatency', 'ChanClockSkew', 'ChanLatency', 'ChanPartnerQuality', 'ChanQuality', 'Clutch', 'ClutchRaw', 'CpuUsageBG', 'CpuUsageFG', 'DCDriversSoFar', 'DCLapStatus', 'dcPitSpeedLimiterToggle', 'dcStarter', 'dcToggleWindshieldWipers', 'dcTriggerWindshieldWipers', 'DisplayUnits', 'dpFastRepair', 'dpFuelAddKg', 'dpFuelAutoFillActive', 'dpFuelAutoFillEnabled', 'dpFuelFill', 'dpLFTireChange', 'dpLFTireColdPress', 'dpLRTireChange', 'dpLRTireColdPress', 'dpRFTireChange', 'dpRFTireColdPress', 'dpRRTireChange', 'dpRRTireColdPress', 'dpWindshieldTearoff', 'DriverMarker','DriverInfo', 'Engine0_RPM', 'EngineWarnings', 'EnterExitReset', 'FastRepairAvailable', 'FastRepairUsed', 'FogLevel', 'FrameRate', 'FrontTireSetsAvailable', 'FrontTireSetsUsed', 'FuelLevel', 'FuelLevelPct', 'FuelPress', 'FuelUsePerHour', 'Gear', 'GpuUsage', 'HandbrakeRaw', 'IsDiskLoggingActive', 'IsDiskLoggingEnabled', 'IsGarageVisible', 'IsInGarage', 'IsOnTrack', 'IsOnTrackCar', 'IsReplayPlaying', 'Lap', 'LapBestLap', 'LapBestLapTime', 'LapBestNLapLap', 'LapBestNLapTime', 'LapCompleted', 'LapCurrentLapTime', 'LapDeltaToBestLap', 'LapDeltaToBestLap_DD', 'LapDeltaToBestLap_OK', 'LapDeltaToOptimalLap', 'LapDeltaToOptimalLap_DD', 'LapDeltaToOptimalLap_OK', 'LapDeltaToSessionBestLap', 'LapDeltaToSessionBestLap_DD', 'LapDeltaToSessionBestLap_OK', 'LapDeltaToSessionLastlLap', 'LapDeltaToSessionLastlLap_DD', 'LapDeltaToSessionLastlLap_OK', 'LapDeltaToSessionOptimalLap', 'LapDeltaToSessionOptimalLap_DD', 'LapDeltaToSessionOptimalLap_OK', 'LapDist', 'LapDistPct', 'LapLasNLapSeq', 'LapLastLapTime', 'LapLastNLapTime', 'LatAccel', 'LatAccel_ST', 'LeftTireSetsAvailable', 'LeftTireSetsUsed', 'LFbrakeLinePress', 'LFcoldPressure', 'LFodometer', 'LFshockDefl', 'LFshockDefl_ST', 'LFshockVel', 'LFshockVel_ST', 'LFtempCL', 'LFtempCM', 'LFtempCR', 'LFTiresAvailable', 'LFTiresUsed', 'LFwearL', 'LFwearM', 'LFwearR', 'LoadNumTextures', 'LongAccel', 'LongAccel_ST', 'LRbrakeLinePress', 'LRcoldPressure', 'LRodometer', 'LRshockDefl', 'LRshockDefl_ST', 'LRshockVel', 'LRshockVel_ST', 'LRtempCL', 'LRtempCM', 'LRtempCR', 'LRTiresAvailable', 'LRTiresUsed', 'LRwearL', 'LRwearM', 'LRwearR', 'ManifoldPress', 'ManualBoost', 'ManualNoBoost', 'MemPageFaultSec', 'MemSoftPageFaultSec', 'OilLevel', 'OilPress', 'OilTemp', 'OkToReloadTextures', 'OnPitRoad', 'P2P_Count', 'P2P_Status', 'PaceMode', 'Pitch', 'PitchRate', 'PitchRate_ST', 'PitOptRepairLeft', 'PitRepairLeft', 'PitsOpen', 'PitstopActive', 'PitSvFlags', 'PitSvFuel', 'PitSvLFP', 'PitSvLRP', 'PitSvRFP', 'PitSvRRP', 'PitSvTireCompound', 'PlayerCarClass', 'PlayerCarClassPosition', 'PlayerCarDriverIncidentCount', 'PlayerCarDryTireSetLimit', 'PlayerCarIdx', 'PlayerCarInPitStall', 'PlayerCarMyIncidentCount', 'PlayerCarPitSvStatus', 'PlayerCarPosition', 'PlayerCarPowerAdjust', 'PlayerCarSLBlinkRPM', 'PlayerCarSLFirstRPM', 'PlayerCarSLLastRPM', 'PlayerCarSLShiftRPM', 'PlayerCarTeamIncidentCount', 'PlayerCarTowTime', 'PlayerCarWeightPenalty', 'PlayerFastRepairsUsed', 'PlayerIncidents', 'PlayerTireCompound', 'PlayerTrackSurface', 'PlayerTrackSurfaceMaterial', 'Precipitation', 'PushToPass', 'PushToTalk', 'RaceLaps', 'RadioTransmitCarIdx', 'RadioTransmitFrequencyIdx', 'RadioTransmitRadioIdx', 'RearTireSetsAvailable', 'RearTireSetsUsed', 'RelativeHumidity', 'RFbrakeLinePress', 'RFcoldPressure', 'RFodometer', 'RFshockDefl', 'RFshockDefl_ST', 'RFshockVel', 'RFshockVel_ST', 'RFtempCL', 'RFtempCM', 'RFtempCR', 'RFTiresAvailable', 'RFTiresUsed', 'RFwearL', 'RFwearM', 'RFwearR', 'RightTireSetsAvailable', 'RightTireSetsUsed', 'Roll', 'RollRate', 'RollRate_ST', 'RPM', 'RRbrakeLinePress', 'RRcoldPressure', 'RRodometer', 'RRshockDefl', 'RRshockDefl_ST', 'RRshockVel', 'RRshockVel_ST', 'RRtempCL', 'RRtempCM', 'RRtempCR', 'RRTiresAvailable', 'RRTiresUsed', 'RRwearL', 'RRwearM', 'RRwearR','SessionInfo', 'SessionFlags', 'SessionJokerLapsRemain', 'SessionLapsRemain', 'SessionLapsRemainEx', 'SessionLapsTotal', 'SessionNum', 'SessionOnJokerLap', 'SessionState', 'SessionTick', 'SessionTime', 'SessionTimeOfDay', 'SessionTimeRemain', 'SessionTimeTotal', 'SessionUniqueID', 'Shifter', 'ShiftGrindRPM', 'ShiftPowerPct', 'Skies', 'SolarAltitude', 'SolarAzimuth', 'Speed', 'SteeringFFBEnabled', 'SteeringWheelAngle', 'SteeringWheelAngleMax', 'SteeringWheelLimiter', 'SteeringWheelMaxForceNm', 'SteeringWheelPctDamper', 'SteeringWheelPctIntensity', 'SteeringWheelPctSmoothing', 'SteeringWheelPctTorque', 'SteeringWheelPctTorqueSign', 'SteeringWheelPctTorqueSignStops', 'SteeringWheelPeakForceNm', 'SteeringWheelTorque', 'SteeringWheelTorque_ST', 'SteeringWheelUseLinear','SplitTimeInfo', 'Throttle', 'ThrottleRaw', 'TireLF_RumblePitch', 'TireLR_RumblePitch', 'TireRF_RumblePitch', 'TireRR_RumblePitch', 'TireSetsAvailable', 'TireSetsUsed', 'TrackTempCrew', 'TrackWetness', 'VelocityX', 'VelocityX_ST', 'VelocityY', 'VelocityY_ST', 'VelocityZ', 'VelocityZ_ST', 'VertAccel', 'VertAccel_ST', 'VidCapActive', 'VidCapEnabled', 'Voltage', 'WaterLevel', 'WaterTemp', 'WeatherDeclaredWet','WeekendInfo', 'WindDir', 'WindVel', 'Yaw', 'YawNorth', 'YawRate', 'YawRate_ST']
 # === Coleta de dados do iRacing e envio ===
 def main():
+    mqtt_dynamic_topic = None  # inicializa a variável aqui, dentro da função main
     ir = irsdk.IRSDK()
     os.makedirs(LOCAL_DIR, exist_ok=True)
 
     service = authenticate_google_drive()
+    conectar_mqtt()
     data_batch = []
     frame_count = 0
     nome_arquivo_live = None
@@ -210,7 +230,7 @@ def main():
     'DisplayUnits', 'dcTractionControl', 'dcTractionControl2', 'dcTractionControlToggle', 'dpFastRepair', 
     'dpFuelAddKg', 'dpFuelAutoFillActive', 'dpFuelAutoFillEnabled', 'dpFuelFill', 'dpLFTireChange', 
     'dpLFTireColdPress', 'dpLRTireChange', 'dpLRTireColdPress', 'dpRFTireChange', 'dpRFTireColdPress', 
-    'dpRRTireChange', 'dpRRTireColdPress', 'dpWindshieldTearoff', 'DriverMarker', 'Engine0_RPM', 
+    'dpRRTireChange', 'dpRRTireColdPress', 'dpWindshieldTearoff', 'DriverMarker','DriverInfo', 'Engine0_RPM', 
     'EngineWarnings', 'EnterExitReset', 'FastRepairAvailable', 'FastRepairUsed', 'FogLevel', 'FrameRate', 
     'FrontTireSetsAvailable', 'FrontTireSetsUsed', 'FuelLevel', 'FuelLevelPct', 'FuelPress', 'FuelUsePerHour', 
     'Gear', 'GpuUsage', 'HandbrakeRaw', 'IsDiskLoggingActive', 'IsDiskLoggingEnabled', 'IsGarageVisible', 
@@ -245,7 +265,7 @@ def main():
     'SteeringWheelPctTorqueSign', 'SteeringWheelPctTorqueSignStops', 'SteeringWheelPeakForceNm', 'SteeringWheelTorque', 'SteeringWheelTorque_ST', 
     'SteeringWheelUseLinear', 'Throttle', 'ThrottleRaw', 'TireLF_RumblePitch', 'TireLR_RumblePitch', 'TireRF_RumblePitch', 'TireRR_RumblePitch', 
     'TireSetsAvailable', 'TireSetsUsed', 'TrackTempCrew', 'TrackWetness', 'VelocityX', 'VelocityX_ST', 'VelocityY', 'VelocityY_ST', 'VelocityZ', 
-    'VelocityZ_ST', 'VertAccel', 'VertAccel_ST', 'VidCapActive', 'VidCapEnabled', 'Voltage', 'WaterLevel', 'WaterTemp', 'WeatherDeclaredWet', 
+    'VelocityZ_ST', 'VertAccel', 'VertAccel_ST', 'VidCapActive', 'VidCapEnabled', 'Voltage', 'WaterLevel', 'WaterTemp', 'WeatherDeclaredWet', 'WeekendInfo',
     'WindDir', 'WindVel', 'Yaw', 'YawNorth', 'YawRate', 'YawRate_ST']
 
     try:
@@ -259,8 +279,32 @@ def main():
                         frame_data[var_name] = ir[var_name]
                     except:
                         frame_data[var_name] = None
+                # Adiciona o nome da sessão no JSON
+                if nome_arquivo_live is not None:
+                    session_name = nome_arquivo_live.replace(".parquet", "")
+                    frame_data["session_name"] = session_name
 
                 data_batch.append(frame_data)
+                # # Enviar dados via MQTT (JSON)
+                # try:
+                #     mqtt_payload = json.dumps(frame_data, default=str)  # Convert datetime etc.
+                #     mqtt_client.publish(MQTT_TOPIC, mqtt_payload, qos=0)
+                #     print("[MQTT] Publicando dados no tópico gear1/telemetria:",frame_data)
+                # except Exception as e:
+                #     print(f"[MQTT] Erro ao enviar dados: {e}")
+                # --- NOVO: Publicar no tópico dinâmico baseado no nome do arquivo (se disponível) ---
+                try:
+                    if nome_arquivo_live is not None:
+                        if mqtt_dynamic_topic is None:
+                            # Gera o tópico dinâmico a partir do nome do arquivo (removendo extensão)
+                            mqtt_dynamic_topic = "gear1/" + nome_arquivo_live.replace(".parquet", "")
+
+                        mqtt_payload = json.dumps(frame_data, default=str)  # Inclui session_name
+                        mqtt_client.publish(mqtt_dynamic_topic, mqtt_payload, qos=0)
+                        print(f"[MQTT] Publicando dados no tópico dinâmico {mqtt_dynamic_topic}: {frame_data}")
+                except Exception as e:
+                    print(f"[MQTT] Erro ao enviar dados no tópico dinâmico: {e}")
+
                 frame_count += 1
 
                 if frame_count % UPLOAD_INTERVAL == 0:
@@ -269,6 +313,9 @@ def main():
                         nome_arquivo_live = gerar_nome_arquivo(df_temp, iracing_ativo=True)
                         caminho_arquivo_live = os.path.join(LOCAL_DIR, nome_arquivo_live)
 
+                    # Antes de montar o DataFrame para salvar, remova session_name dos registros
+                    for item in data_batch:
+                        item.pop("session_name", None)  # remove se existir
                     df_batch = pl.DataFrame(data_batch)
                     if os.path.exists(caminho_arquivo_live):
                         df_existente = pl.read_parquet(caminho_arquivo_live)
@@ -371,6 +418,13 @@ def main():
                 print(f"Erro ao enviar para o Google Drive: {e}")
         else:
             print("Nenhum dado consolidado para salvar.")
+        
+        try:
+            mqtt_client.loop_stop()
+            mqtt_client.disconnect()
+            print("[MQTT] Conexão encerrada.")
+        except Exception as e:
+            print(f"[MQTT] Erro ao encerrar conexão: {e}")
 
         ir.shutdown()
 
